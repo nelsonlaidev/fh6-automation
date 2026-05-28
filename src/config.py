@@ -61,7 +61,7 @@ class CaptureCfg:
 
 @dataclass
 class MatchCfg:
-    threshold: float = 0.90
+    threshold: float = 0.85
     stale_timeout_ms: int = 1500
     stuck_timeout_ms: int = 4000
     reference_height: int = 2160
@@ -70,7 +70,7 @@ class MatchCfg:
 @dataclass
 class InputCfg:
     press_hold_ms: int = 90
-    between_press_ms: int = 200
+    between_press_ms: int = 250
     jitter_ms: int = 60
 
 

@@ -2,8 +2,9 @@
 
 ## Unreleased
 
+- **破壞性變更**：設定檔中 `[delete]` section 已重新命名為 `[remove_car]`。升級後舊設定會被忽略並使用預設值，下次儲存時會自動寫入新格式。如需保留原設定，請手動將 `config.ini` 中的 `[delete]` 改為 `[remove_car]`。
 - 修正：Windows 使用者名稱含非 ASCII 字元（如中文）時無法載入模板的問題
-- **Breaking**：設定檔中 `[delete]` section 已重新命名為 `[remove_car]`。升級後舊設定會被忽略並使用預設值，下次儲存時會自動寫入新格式。如需保留原設定，請手動將 `config.ini` 中的 `[delete]` 改為 `[remove_car]`。
+- 調整：根據使用者回饋，將預設 `threshold` 從 0.90 降為 0.85、`between_press_ms` 從 200 提高為 250，整體運行更穩定。
 
 ## v0.1.0
 
