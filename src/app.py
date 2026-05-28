@@ -17,6 +17,10 @@ import updater
 
 REFRESH_MS = 200
 
+FONT_SIZE_TITLE = 20
+FONT_SIZE_HEADING = 16
+FONT_SIZE_BODY = 14
+
 
 COLOR_RUNNING = "#22c55e"
 COLOR_IDLE = "#6b7280"
@@ -112,14 +116,14 @@ class App(ctk.CTk):
         ctk.CTkLabel(
             header,
             text="超級轉盤刷取",
-            font=ctk.CTkFont(size=20, weight="bold"),
+            font=ctk.CTkFont(size=FONT_SIZE_TITLE, weight="bold"),
         ).pack(side="left")
 
         self.pill_text = ctk.CTkLabel(
             header,
             text="閒置",
             text_color=COLOR_MUTED,
-            font=ctk.CTkFont(size=14),
+            font=ctk.CTkFont(size=FONT_SIZE_BODY),
         )
         self.pill_text.pack(side="right")
 
@@ -127,7 +131,7 @@ class App(ctk.CTk):
             header,
             text="●",
             text_color=COLOR_IDLE,
-            font=ctk.CTkFont(size=20),
+            font=ctk.CTkFont(size=FONT_SIZE_TITLE),
         )
         self.pill_dot.pack(side="right", padx=(0, 4))
 
@@ -353,7 +357,7 @@ class StepFrame(ctk.CTkFrame):
         ctk.CTkLabel(
             self,
             text=runner.label,
-            font=ctk.CTkFont(size=16, weight="bold"),
+            font=ctk.CTkFont(size=FONT_SIZE_HEADING, weight="bold"),
             anchor="w",
         ).pack(fill="x")
 
@@ -362,7 +366,7 @@ class StepFrame(ctk.CTkFrame):
         ctk.CTkLabel(
             qty_row,
             text=runner.quantity_label,
-            font=ctk.CTkFont(size=14),
+            font=ctk.CTkFont(size=FONT_SIZE_BODY),
         ).pack(side="left")
 
         self.qty_var = ctk.StringVar(value="1")
@@ -378,7 +382,7 @@ class StepFrame(ctk.CTkFrame):
             self,
             text="開始",
             height=38,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=ctk.CTkFont(size=FONT_SIZE_BODY, weight="bold"),
             command=self.handle_toggle,
         )
         self.toggle_btn.pack(fill="x", pady=(0, 6))
@@ -423,7 +427,7 @@ class StepFrame(ctk.CTkFrame):
             parent,
             text=label,
             text_color=COLOR_MUTED,
-            font=ctk.CTkFont(size=14),
+            font=ctk.CTkFont(size=FONT_SIZE_BODY),
         ).grid(
             row=row,
             column=col,
@@ -434,7 +438,7 @@ class StepFrame(ctk.CTkFrame):
         v = ctk.CTkLabel(
             parent,
             text=value,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=ctk.CTkFont(size=FONT_SIZE_BODY, weight="bold"),
             anchor="w",
         )
         v.grid(
