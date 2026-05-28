@@ -61,7 +61,7 @@ class CaptureCfg:
 
 @dataclass
 class MatchCfg:
-    threshold: float = 0.90
+    threshold: float = 0.85
     stale_timeout_ms: int = 1500
     stuck_timeout_ms: int = 4000
     scale: float = 0.5
