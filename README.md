@@ -2,6 +2,8 @@
 
 Forza Horizon 6 自動化工具。透過模板比對偵測遊戲畫面，自動按鍵完成重複操作。
 
+▶ [Demo 影片](https://youtu.be/eOvWOZAUlZo)
+
 ## 功能
 
 | 步驟                   | 說明                             |
