@@ -1,6 +1,6 @@
 [project]
 name = "fh6-automation"
-version = "0.1.0"
+version = "0.2.0"
 description = "Forza Horizon 6 automation toolkit"
 license = "AGPL-3.0-or-later"
 requires-python = ">=3.12,<3.13"
