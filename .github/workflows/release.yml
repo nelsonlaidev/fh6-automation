@@ -2,32 +2,45 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    # tags:
+    #   - 'v*.*.*'
+
+# permissions:
+#   contents: write
 
 jobs:
   build:
     runs-on: windows-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v4
-        with:
-          version: 'latest'
+      # 檢查 CHANGELOG.md 是否真的存在於當前目錄
+      - name: Check if CHANGELOG.md exists
+        run: |
+          if (Test-Path "CHANGELOG.md") {
+              Write-Host "找到 CHANGELOG.md！"
+              Get-Content "CHANGELOG.md" -Head 5 # 順便印出前 5 行確認內容
+          } else {
+              Write-Error "錯誤：找不到 CHANGELOG.md 檔案！"
+              exit 1
+          }
+        shell: powershell
 
-      - name: Install dependencies
-        run: uv sync --group dev
+      # - uses: astral-sh/setup-uv@v4
+      #   with:
+      #     version: 'latest'
 
-      - name: Build with PyInstaller
-        run: uv run python -m PyInstaller --noconfirm --clean --onedir --windowed --name FH6Automation --add-data "src/templates;templates" --paths src src/main.py
+      # - name: Install dependencies
+      #   run: uv sync --group dev
 
-      - name: Build installer
-        run: iscc installer.iss
+      # - name: Build with PyInstaller
+      #   run: uv run python -m PyInstaller --noconfirm --clean --onedir --windowed --name FH6Automation --add-data "src/templates;templates" --paths src src/main.py
 
-      - name: Upload installer to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: Output/FH6Automation_Setup.exe
-          body_path: CHANGELOG.md
+      # - name: Build installer
+      #   run: iscc installer.iss
+
+      # - name: Upload installer to Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     files: Output/FH6Automation_Setup.exe
+      #     body_path: CHANGELOG.md
