@@ -99,6 +99,13 @@ uv run .\src\main.py
 .\build_exe.ps1
 ```
 
+## 支持
+
+如果這個工具對你有幫助，歡迎請我喝杯咖啡 ☕
+
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-support-ea4aaa?logo=githubsponsors)](https://github.com/sponsors/nelsonlaidev)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow?logo=buymeacoffee)](https://buymeacoffee.com/nelsonlaidev)
+
 ## 免責聲明
 
 本工具僅供個人學習與研究用途。使用本工具可能違反遊戲服務條款，因使用本工具而導致的任何後果（包括但不限於帳號封禁）由使用者自行承擔。作者不承擔任何責任。
