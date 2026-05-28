@@ -49,7 +49,7 @@ def logs_dir() -> Path:
 @dataclass
 class GeneralCfg:
     dry_run: bool = False
-    always_on_top: bool = True
+    always_on_top: bool = False
     auto_update: bool = True
 
 
