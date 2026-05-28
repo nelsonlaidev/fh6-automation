@@ -14,14 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 檢查 CHANGELOG.md 是否真的存在於當前目錄
       - name: Check if CHANGELOG.md exists
         run: |
           if (Test-Path "CHANGELOG.md") {
-              Write-Host "找到 CHANGELOG.md！"
-              Get-Content "CHANGELOG.md" -Head 5 # 順便印出前 5 行確認內容
+              Write-Host "Found CHANGELOG.md！"
+              Get-Content "CHANGELOG.md" -Head 5
           } else {
-              Write-Error "錯誤：找不到 CHANGELOG.md 檔案！"
+              Write-Error "Error: CHANGELOG.md file not found!"
               exit 1
           }
         shell: powershell
