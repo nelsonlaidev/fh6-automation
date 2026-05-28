@@ -41,6 +41,7 @@ class Status:
     target: int = 1
     last_reason: str = ""
     message: str = ""
+    elapsed_s: float = 0.0
 
 
 class StepRunner:
@@ -72,6 +73,7 @@ class StepRunner:
         self.status = Status()
         self.lock = threading.Lock()
         self.target = 1
+        self._start_time: float | None = None
 
     def start(self, target: int) -> None:
         if self.thread and self.thread.is_alive():
@@ -79,6 +81,7 @@ class StepRunner:
 
         self.target = max(1, int(target))
         self.stop_evt.clear()
+        self._start_time = time.monotonic()
 
         with self.lock:
             self.status = Status(running=True, target=self.target)
@@ -107,7 +110,13 @@ class StepRunner:
 
     def get_status(self) -> Status:
         with self.lock:
-            return Status(**self.status.__dict__)
+            s = Status(**self.status.__dict__)
+        if self._start_time is not None:
+            if s.running:
+                s.elapsed_s = time.monotonic() - self._start_time
+            elif not s.elapsed_s:
+                s.elapsed_s = self.status.elapsed_s
+        return s
 
     def get_state_label(self, state: str) -> str:
         if not state or state in ("-",):
@@ -175,6 +184,8 @@ class StepRunner:
             self.status.running = False
             self.status.last_reason = reason.value
             self.status.message = message
+            if self._start_time is not None:
+                self.status.elapsed_s = time.monotonic() - self._start_time
 
     def finish_user_stopped(self) -> None:
         self.finish(StopReason.USER, USER_STOPPED_MSG)

@@ -415,6 +415,7 @@ class StepFrame(ctk.CTkFrame):
         self.lbl_state = self.stat(stats, 1, 0, "狀態", "—")
         self.lbl_score = self.stat(stats, 2, 0, "分數", "0.000")
         self.lbl_threshold = self.stat(stats, 3, 0, "門檻", "0.85")
+        self.lbl_elapsed = self.stat(stats, 4, 0, "耗時", "0:00")
 
         self.lbl_state_default_color = self.lbl_state.cget("text_color")
 
@@ -517,6 +518,11 @@ class StepFrame(ctk.CTkFrame):
 
         self.lbl_progress.configure(text=f"{status.progress} / {target_str}")
         self.lbl_threshold.configure(text=f"{from_conf_threshold:.2f}")
+
+        elapsed = int(status.elapsed_s)
+        m, s = divmod(elapsed, 60)
+        h, m = divmod(m, 60)
+        self.lbl_elapsed.configure(text=f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}")
 
         if status.last_reason in ERROR_REASONS:
             self.lbl_message.configure(
