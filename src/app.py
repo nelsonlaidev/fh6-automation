@@ -74,7 +74,7 @@ class App(ctk.CTk):
         super().__init__()
         self.title("FH6 自動化")
         self.geometry("680x520")
-        self.minsize(640, 480)
+        self.resizable(False, False)
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -189,7 +189,6 @@ class App(ctk.CTk):
                 on_stop=lambda s=sid: self.on_stop(s),
                 on_save=lambda s=sid: self.on_save(s),
             )
-            frame.place(relx=0, rely=0, relwidth=1, relheight=1)
             self.step_frames[sid] = frame
 
         footer = ctk.CTkFrame(outer, fg_color="transparent")
@@ -222,7 +221,11 @@ class App(ctk.CTk):
 
     def show_step(self, step_id: str) -> None:
         self.current = step_id
-        self.step_frames[step_id].tkraise()
+        for sid, frame in self.step_frames.items():
+            if sid == step_id:
+                frame.pack(fill="both", expand=True)
+            else:
+                frame.pack_forget()
 
     def on_start(self, step_id: str) -> None:
         running = self.any_running()
