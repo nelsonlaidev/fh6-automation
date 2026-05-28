@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pygetwindow as gw
 import win32gui
 
-WINDOW_TITLE_HINTS = "Forza Horizon 6"
+WINDOW_TITLE_HINTS = ["Forza Horizon 6"]
 
 
 @dataclass

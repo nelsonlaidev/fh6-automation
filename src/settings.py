@@ -5,6 +5,8 @@ from loguru import logger
 
 import config as cfg
 
+FONT_SIZE_HEADING = 14
+
 
 class SettingsWindow(ctk.CTkToplevel):
     def __init__(self, parent, conf: cfg.Config, on_save=None) -> None:
@@ -85,7 +87,7 @@ class SettingsWindow(ctk.CTkToplevel):
         ctk.CTkLabel(
             parent,
             text=title,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=ctk.CTkFont(size=FONT_SIZE_HEADING, weight="bold"),
         ).pack(fill="x", pady=(12, 4))
 
     def checkbox(self, parent, label: str, value: bool) -> ctk.BooleanVar:

@@ -27,7 +27,6 @@ COLOR_RUNNING = "#22c55e"
 COLOR_IDLE = "#6b7280"
 COLOR_ERROR = "#ef4444"
 COLOR_WARNING = "#f59e0b"
-COLOR_DONE = "#22c55e"
 COLOR_MUTED = "gray60"
 COLOR_ACCENT = "#3b82f6"
 
@@ -328,9 +327,9 @@ class App(ctk.CTk):
                     )
                 self.step_btn_selected[sid] = selected
 
-        for sid, frame in self.step_frames.items():
-            other_running = any_running and running_id != sid
-            frame.refresh(disabled_due_to_other=other_running)
+        frame = self.step_frames[self.current]
+        other_running = any_running and running_id != self.current
+        frame.refresh(disabled_due_to_other=other_running)
 
         self.after(REFRESH_MS, self.refresh)
 
@@ -461,20 +460,13 @@ class StepFrame(ctk.CTkFrame):
         try:
             target = int(raw)
         except ValueError:
-            self.lbl_message.configure(
-                text="數量無效 (請輸入正整數)。",
-                text_color=COLOR_ERROR,
-            )
+            self.set_message("數量無效 (請輸入正整數)。", COLOR_ERROR)
             return None
 
         if target < 1:
-            self.lbl_message.configure(
-                text="數量至少要 1。",
-                text_color=COLOR_ERROR,
-            )
+            self.set_message("數量至少要 1。", COLOR_ERROR)
             return None
 
-        self.lbl_message.configure(text_color=COLOR_MUTED)
         return target
 
     def refresh(self, disabled_due_to_other: bool) -> None:
@@ -550,7 +542,7 @@ class StepFrame(ctk.CTkFrame):
             return {"text": "錯誤", "text_color": COLOR_ERROR}
 
         if reason == "target_reached":
-            return {"text": REASON_LABEL[reason], "text_color": COLOR_DONE}
+            return {"text": REASON_LABEL[reason], "text_color": COLOR_RUNNING}
 
         if reason:
             return {
@@ -570,8 +562,11 @@ class StepFrame(ctk.CTkFrame):
         self.on_save()
 
     def show_saved(self) -> None:
-        self.lbl_message.configure(text="設定已儲存。", text_color=COLOR_DONE)
-        self.message_until = time.monotonic() + 2.0
+        self.set_message("設定已儲存。", COLOR_RUNNING)
+
+    def set_message(self, text: str, color: str, duration: float = 3.0) -> None:
+        self.lbl_message.configure(text=text, text_color=color)
+        self.message_until = time.monotonic() + duration
 
 
 def run() -> None:
