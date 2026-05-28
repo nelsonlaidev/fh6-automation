@@ -90,7 +90,7 @@ class UpgradeCarCfg:
 
 
 @dataclass
-class DeleteCfg:
+class RemoveCarCfg:
     quantity: int = 33
 
 
@@ -103,7 +103,7 @@ class Config:
     farm_sp: FarmSPCfg
     buy_car: BuyCarCfg
     upgrade_car: UpgradeCarCfg
-    delete: DeleteCfg
+    remove_car: RemoveCarCfg
 
 
 def get_defaults() -> Config:
@@ -115,7 +115,7 @@ def get_defaults() -> Config:
         farm_sp=FarmSPCfg(),
         buy_car=BuyCarCfg(),
         upgrade_car=UpgradeCarCfg(),
-        delete=DeleteCfg(),
+        remove_car=RemoveCarCfg(),
     )
 
 
@@ -158,9 +158,9 @@ quantity = {defaults.buy_car.quantity}
 ; 要升級幾輛，必須 >= 1。
 quantity = {defaults.upgrade_car.quantity}
 
-[delete]
+[remove_car]
 ; 要從車庫刪除幾輛，必須 >= 1。
-quantity = {defaults.delete.quantity}
+quantity = {defaults.remove_car.quantity}
 """
 
 
@@ -248,10 +248,12 @@ def load() -> Config:
                 ),
             ),
         ),
-        delete=DeleteCfg(
+        remove_car=RemoveCarCfg(
             quantity=max(
                 1,
-                parser.getint("delete", "quantity", fallback=defaults.delete.quantity),
+                parser.getint(
+                    "remove_car", "quantity", fallback=defaults.remove_car.quantity
+                ),
             ),
         ),
     )
@@ -288,8 +290,8 @@ def save(conf: Config) -> None:
     parser["upgrade_car"] = {
         "quantity": str(conf.upgrade_car.quantity),
     }
-    parser["delete"] = {
-        "quantity": str(conf.delete.quantity),
+    parser["remove_car"] = {
+        "quantity": str(conf.remove_car.quantity),
     }
     with open(config_path(), "w", encoding="utf-8") as f:
         parser.write(f)

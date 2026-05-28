@@ -140,7 +140,7 @@ class SettingsWindow(ctk.CTkToplevel):
                 farm_sp=self.conf.farm_sp,
                 buy_car=self.conf.buy_car,
                 upgrade_car=self.conf.upgrade_car,
-                delete=self.conf.delete,
+                remove_car=self.conf.remove_car,
             )
 
             cfg.save(conf)

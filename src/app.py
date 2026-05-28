@@ -85,7 +85,7 @@ class App(ctk.CTk):
             "farm_sp": FarmSPRunner(self.conf),
             "buy_car": BuyCarRunner(self.conf),
             "upgrade_car": UpgradeCarRunner(self.conf),
-            "delete": RemoveCarRunner(self.conf),
+            "remove_car": RemoveCarRunner(self.conf),
         }
         self.step_order = list(self.runners.keys())
         self.current = self.step_order[0]
@@ -215,7 +215,7 @@ class App(ctk.CTk):
             "farm_sp": conf.farm_sp.target_runs,
             "buy_car": conf.buy_car.quantity,
             "upgrade_car": conf.upgrade_car.quantity,
-            "delete": conf.delete.quantity,
+            "remove_car": conf.remove_car.quantity,
         }[step_id]
 
     def show_step(self, step_id: str) -> None:
@@ -236,7 +236,7 @@ class App(ctk.CTk):
         if target is None:
             return
 
-        if step_id == "delete" and not self.confirm_delete(target):
+        if step_id == "remove_car" and not self.confirm_delete(target):
             self.runner(step_id).mark_declined()
             return
 
@@ -282,8 +282,8 @@ class App(ctk.CTk):
             c.buy_car.quantity = target
         elif step_id == "upgrade_car":
             c.upgrade_car.quantity = target
-        elif step_id == "delete":
-            c.delete.quantity = target
+        elif step_id == "remove_car":
+            c.remove_car.quantity = target
         try:
             cfg.save(c)
         except OSError as e:

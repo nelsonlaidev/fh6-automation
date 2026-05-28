@@ -26,7 +26,7 @@ DOWNS_TO_REMOVE = 4
 
 
 class RemoveCarRunner(StepRunner):
-    name = "delete"
+    name = "remove_car"
     label = "移除車輛"
     quantity_label = "移除數量:"
     progress_label = "已移除"
@@ -112,7 +112,7 @@ class RemoveCarRunner(StepRunner):
 
             progress = i + 1
             self.update(progress=progress)
-            logger.info("delete: progress {}/{}", progress, self.target)
+            logger.info("remove_car: progress {}/{}", progress, self.target)
 
             self.sleep(500)
 
