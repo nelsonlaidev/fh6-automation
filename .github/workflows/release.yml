@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: 'latest'
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Build with PyInstaller
+        run: uv run python -m PyInstaller --noconfirm --clean --onedir --windowed --name FH6Automation --add-data "src/templates;templates" --paths src src/main.py
+
+      - name: Build installer
+        run: iscc installer.iss
+
+      - name: Upload installer to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Output/FH6Automation_Setup.exe
+          generate_release_notes: true
