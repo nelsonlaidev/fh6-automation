@@ -256,7 +256,7 @@ class UpgradeCarRunner(StepRunner):
                     return False
                 continue
 
-            frame = vision.scale_frame(frame, conf.match.scale)
+            frame = vision.to_gray(frame)
             score, _ = vision.match_one(frame, tpl)
 
             self.update(score=score, match_name=name)
@@ -294,7 +294,7 @@ class UpgradeCarRunner(StepRunner):
                     return None
                 continue
 
-            frame = vision.scale_frame(frame, conf.match.scale)
+            frame = vision.to_gray(frame)
 
             best_name, best_score = names[0], -1.0
             for n, tpl in tpls:

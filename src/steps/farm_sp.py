@@ -115,7 +115,7 @@ class FarmSPRunner(StepRunner):
                     break
                 continue
 
-            frame = vision.scale_frame(frame, conf.match.scale)
+            frame = vision.to_gray(frame)
             score, _ = vision.match_one(frame, tpl)
 
             self.update(score=score, match_name=tpl_name)
@@ -212,7 +212,7 @@ class FarmSPRunner(StepRunner):
                         return
                     continue
 
-                frame = vision.scale_frame(frame, conf.match.scale)
+                frame = vision.to_gray(frame)
                 score, _ = vision.match_one(frame, tpl)
 
                 self.update(score=score, match_name="farm_sp_anna")

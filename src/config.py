@@ -64,7 +64,7 @@ class MatchCfg:
     threshold: float = 0.85
     stale_timeout_ms: int = 1500
     stuck_timeout_ms: int = 4000
-    scale: float = 0.5
+    reference_height: int = 2160
 
 
 @dataclass
@@ -138,8 +138,8 @@ fps = {defaults.capture.fps}
 threshold = {defaults.match.threshold}
 stale_timeout_ms = {defaults.match.stale_timeout_ms}
 stuck_timeout_ms = {defaults.match.stuck_timeout_ms}
-; 比對前縮放畫面與模板。1.0 = 原尺寸，0.5 約快 4 倍。
-scale = {defaults.match.scale}
+; 模板製作時的參考解析度高度（預設 4K = 2160）。
+reference_height = {defaults.match.reference_height}
 
 [input]
 press_hold_ms = {defaults.input.press_hold_ms}
@@ -209,7 +209,9 @@ def load() -> Config:
             stuck_timeout_ms=parser.getint(
                 "match", "stuck_timeout_ms", fallback=defaults.match.stuck_timeout_ms
             ),
-            scale=parser.getfloat("match", "scale", fallback=defaults.match.scale),
+            reference_height=parser.getint(
+                "match", "reference_height", fallback=defaults.match.reference_height
+            ),
         ),
         input=InputCfg(
             press_hold_ms=parser.getint(
@@ -270,7 +272,7 @@ def save(conf: Config) -> None:
         "threshold": str(conf.match.threshold),
         "stale_timeout_ms": str(conf.match.stale_timeout_ms),
         "stuck_timeout_ms": str(conf.match.stuck_timeout_ms),
-        "scale": str(conf.match.scale),
+        "reference_height": str(conf.match.reference_height),
     }
     parser["input"] = {
         "press_hold_ms": str(conf.input.press_hold_ms),

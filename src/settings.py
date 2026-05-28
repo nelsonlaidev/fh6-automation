@@ -57,7 +57,6 @@ class SettingsWindow(ctk.CTkToplevel):
         self.var_stuck_timeout = self.entry(
             scroll, "卡住逾時 (ms)", conf.match.stuck_timeout_ms
         )
-        self.var_scale = self.entry(scroll, "縮放 (scale)", conf.match.scale)
 
         self.section(scroll, "輸入")
         self.var_press_hold = self.entry(
@@ -131,7 +130,7 @@ class SettingsWindow(ctk.CTkToplevel):
                     threshold=float(self.var_threshold.get()),
                     stale_timeout_ms=int(self.var_stale_timeout.get()),
                     stuck_timeout_ms=int(self.var_stuck_timeout.get()),
-                    scale=float(self.var_scale.get()),
+                    reference_height=self.conf.match.reference_height,
                 ),
                 input=cfg.InputCfg(
                     press_hold_ms=int(self.var_press_hold.get()),

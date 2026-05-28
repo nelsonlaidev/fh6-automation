@@ -126,14 +126,15 @@ class StepRunner:
             return
 
         rect = window.client_rect(win)
+        ratio = rect.height / conf.match.reference_height
         logger.info(
-            "Forza found: {}x{} (match scale={})",
+            "Forza found: {}x{} (ratio={:.3f})",
             rect.width,
             rect.height,
-            conf.match.scale,
+            ratio,
         )
 
-        templates = vision.load_templates(self.template_names, scale=conf.match.scale)
+        templates = vision.load_templates(self.template_names, ratio=ratio)
 
         if len(templates) != len(self.template_names):
             missing = set(self.template_names) - set(templates)

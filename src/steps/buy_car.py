@@ -76,7 +76,7 @@ class BuyCarRunner(StepRunner):
                     break
                 continue
 
-            frame = vision.scale_frame(frame, conf.match.scale)
+            frame = vision.to_gray(frame)
 
             best = vision.best_match(frame, templates)
             t2 = time.monotonic()

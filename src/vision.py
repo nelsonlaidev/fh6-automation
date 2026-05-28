@@ -19,8 +19,11 @@ def bundled_templates_dir() -> Path:
     return Path(__file__).resolve().parent / "templates"
 
 
-def load_templates(names: list[str], scale: float = 1.0) -> dict[str, np.ndarray]:
-    """載入模板：先從內建目錄讀取，再用使用者目錄的同名檔覆寫。"""
+def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray]:
+    """載入模板並按 ratio 縮放。
+
+    ratio = 視窗高度 / 模板參考高度（例如 1080/2160 = 0.5）。
+    """
     bundled = bundled_templates_dir()
     user = config.user_templates_dir()
     out: dict[str, np.ndarray] = {}
@@ -42,30 +45,17 @@ def load_templates(names: list[str], scale: float = 1.0) -> dict[str, np.ndarray
             logger.warning("Failed to read template: {}", path)
             continue
 
-        if scale != 1.0 and scale > 0:
+        if ratio != 1.0 and ratio > 0:
             height, width = img.shape[:2]
             img = cv2.resize(
                 img,
-                (max(1, int(round(width * scale))), max(1, int(round(height * scale)))),
+                (max(1, int(round(width * ratio))), max(1, int(round(height * ratio)))),
                 interpolation=cv2.INTER_AREA,
             )
 
         out[name] = img
 
     return out
-
-
-def scale_frame(frame: np.ndarray, scale: float) -> np.ndarray:
-    if scale == 1.0 or scale <= 0:
-        return frame
-
-    height, width = frame.shape[:2]
-
-    return cv2.resize(
-        frame,
-        (max(1, int(round(width * scale))), max(1, int(round(height * scale)))),
-        interpolation=cv2.INTER_AREA,
-    )
 
 
 def to_gray(frame: np.ndarray) -> np.ndarray:
@@ -77,7 +67,6 @@ def to_gray(frame: np.ndarray) -> np.ndarray:
 
 def match_one(frame: np.ndarray, template: np.ndarray) -> tuple[float, tuple[int, int]]:
     frame = to_gray(frame)
-    template = to_gray(template)
 
     frame_height, frame_width = frame.shape[:2]
     template_height, template_width = template.shape[:2]

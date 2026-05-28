@@ -148,7 +148,7 @@ class RemoveCarRunner(StepRunner):
                     return False
                 continue
 
-            frame = vision.scale_frame(frame, conf.match.scale)
+            frame = vision.to_gray(frame)
             score, _ = vision.match_one(frame, tpl)
 
             self.update(score=score, match_name=name)
