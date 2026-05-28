@@ -16,7 +16,13 @@ class MatchResult:
 
 
 def bundled_templates_dir() -> Path:
-    return Path(__file__).resolve().parent / "templates"
+    import sys
+
+    if getattr(sys, "frozen", False):
+        base = Path(getattr(sys, "_MEIPASS"))
+    else:
+        base = Path(__file__).resolve().parent
+    return base / "templates"
 
 
 def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray]:
@@ -39,7 +45,9 @@ def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray
             logger.warning("Missing template: {}", name)
             continue
 
-        img = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+        img = cv2.imdecode(
+            np.fromfile(str(path), dtype=np.uint8), cv2.IMREAD_GRAYSCALE
+        )
 
         if img is None:
             logger.warning("Failed to read template: {}", path)
