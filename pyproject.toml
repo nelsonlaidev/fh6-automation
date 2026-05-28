@@ -1,0 +1,22 @@
+[project]
+name = "fh6-automation"
+version = "0.1.0"
+description = "Forza Horizon 6 automation toolkit"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "bettercam>=1.0",
+  "customtkinter>=5.2",
+  "loguru>=0.7",
+  "mss>=10.0",
+  "numpy>=2.0",
+  "opencv-python>=4.10",
+  "pydirectinput-rgx>=2.1",
+  "pygetwindow>=0.0.9",
+  "pywin32>=306",
+]
+
+[dependency-groups]
+dev = ["pyinstaller>=6.10"]
+
+[tool.uv]
+package = false

@@ -1,0 +1,14 @@
+# uv / Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Logs / local data
+*.log
+.local/
