@@ -1,7 +1,7 @@
 ; Inno Setup script for FH6 Automation
 
 #define MyAppName "FH6 Automation"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "0.1.0"
 #define MyAppPublisher "nelsonlaidev"
 #define MyAppURL "https://github.com/nelsonlaidev/fh6-automation"
 #define MyAppExeName "FH6Automation.exe"
