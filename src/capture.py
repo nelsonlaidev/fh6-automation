@@ -32,7 +32,10 @@ class BetterCamGrabber:
         return self.last_frame
 
     def close(self) -> None:
-        pass
+        try:
+            del self.cam
+        except Exception:
+            pass
 
 
 class MssGrabber:
