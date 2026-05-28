@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 from tkinter import messagebox
 
 import customtkinter as ctk
@@ -347,6 +348,7 @@ class StepFrame(ctk.CTkFrame):
         self.on_stop = on_stop
         self.on_save = on_save
         self.last_btn_state: tuple[bool, bool] | None = None
+        self.message_until: float = 0
 
         self.build_ui()
         self.qty_var.set(str(initial_quantity))
@@ -527,7 +529,8 @@ class StepFrame(ctk.CTkFrame):
                 text_color=COLOR_ERROR,
             )
         else:
-            self.lbl_message.configure(text="", text_color=COLOR_MUTED)
+            if time.monotonic() >= self.message_until:
+                self.lbl_message.configure(text="", text_color=COLOR_MUTED)
 
     def compute_state_display(self, status) -> dict:
         """根據 runner 狀態決定 lbl_state 要顯示什麼字、什麼顏色。"""
@@ -565,6 +568,7 @@ class StepFrame(ctk.CTkFrame):
 
     def show_saved(self) -> None:
         self.lbl_message.configure(text="設定已儲存。", text_color=COLOR_DONE)
+        self.message_until = time.monotonic() + 2.0
 
 
 def run() -> None:
