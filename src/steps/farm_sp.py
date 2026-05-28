@@ -199,7 +199,7 @@ class FarmSPRunner(StepRunner):
             while not self.stop_evt.is_set():
                 tick_start = time.monotonic()
 
-                if conf.input.require_foreground and not window.is_foreground(win):
+                if not window.is_foreground(win):
                     logger.info(
                         "farm_sp: Forza lost foreground while driving, releasing W"
                     )

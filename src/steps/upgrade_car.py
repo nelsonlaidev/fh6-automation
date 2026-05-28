@@ -144,14 +144,14 @@ class UpgradeCarRunner(StepRunner):
             if self.sleep_or_stop(WAIT_AFTER_ENTER_MS):
                 return
 
-            if not self.conf.dry_run:
+            if not self.conf.general.dry_run:
                 self.tap("enter")
             if self.sleep_or_stop(WAIT_FIRST_SKILL_MS):
                 return
 
             for key in ["right", "up", "up", "up", "left"]:
                 self.tap(key)
-                if not self.conf.dry_run:
+                if not self.conf.general.dry_run:
                     self.tap("enter")
 
                 if self.sleep_or_stop(WAIT_AFTER_BUY_MS):
@@ -159,7 +159,7 @@ class UpgradeCarRunner(StepRunner):
 
             self.update(state="spin_animation")
 
-            if not self.conf.dry_run:
+            if not self.conf.general.dry_run:
                 if not self.wait_for_template(
                     "upgrade_car_wheelspin_unlocked", ANIMATION_TIMEOUT_MS
                 ):
@@ -243,7 +243,7 @@ class UpgradeCarRunner(StepRunner):
             if time.monotonic() >= deadline:
                 return False
 
-            if conf.input.require_foreground and not window.is_foreground(self.win):
+            if not window.is_foreground(self.win):
                 if self.sleep(250):
                     return False
                 continue
@@ -281,7 +281,7 @@ class UpgradeCarRunner(StepRunner):
             if time.monotonic() >= deadline:
                 return None
 
-            if conf.input.require_foreground and not window.is_foreground(self.win):
+            if not window.is_foreground(self.win):
                 if self.sleep(250):
                     return None
                 continue

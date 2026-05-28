@@ -8,10 +8,12 @@ from loguru import logger
 
 import config as cfg
 from runner import StepRunner
+from settings import SettingsWindow
 from steps.buy_car import BuyCarRunner
 from steps.remove_car import RemoveCarRunner
 from steps.farm_sp import FarmSPRunner
 from steps.upgrade_car import UpgradeCarRunner
+import updater
 
 REFRESH_MS = 200
 
@@ -72,10 +74,8 @@ class App(ctk.CTk):
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
-        # TODO: make it configurable
-        self.attributes("-topmost", True)
-
         self.conf = cfg.load()
+        self.attributes("-topmost", self.conf.general.always_on_top)
 
         self.runners: dict[str, StepRunner] = {
             "farm_sp": FarmSPRunner(self.conf),
@@ -89,6 +89,9 @@ class App(ctk.CTk):
         self.build_ui()
         self.show_step(self.current)
         self.after(REFRESH_MS, self.refresh)
+
+        if self.conf.general.auto_update:
+            updater.check_update_async(self)
 
     def runner(self, step_id: str) -> StepRunner:
         return self.runners[step_id]
@@ -283,8 +286,13 @@ class App(ctk.CTk):
         open_in_explorer(cfg.user_templates_dir())
 
     def open_config(self) -> None:
-        cfg.load()
-        open_in_explorer(cfg.config_path())
+        SettingsWindow(self, self.conf, on_save=self.apply_settings)
+
+    def apply_settings(self, new_conf: cfg.Config) -> None:
+        self.conf = new_conf
+        self.attributes("-topmost", new_conf.general.always_on_top)
+        for r in self.runners.values():
+            r.conf = new_conf
 
     def open_logs(self) -> None:
         open_in_explorer(cfg.logs_dir())
@@ -496,7 +504,11 @@ class StepFrame(ctk.CTkFrame):
         from_conf_threshold = runner.conf.match.threshold
 
         self.lbl_score.configure(
-            text=f"{status.score:.3f}  ({status.match_name})" if status.match_name else f"{status.score:.3f}",
+            text=(
+                f"{status.score:.3f}  ({status.match_name})"
+                if status.match_name
+                else f"{status.score:.3f}"
+            ),
             text_color=score_color(status.score, from_conf_threshold),
         )
 

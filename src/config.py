@@ -47,6 +47,13 @@ def logs_dir() -> Path:
 
 
 @dataclass
+class GeneralCfg:
+    dry_run: bool = False
+    always_on_top: bool = True
+    auto_update: bool = True
+
+
+@dataclass
 class CaptureCfg:
     backend: str = "auto"  # auto | bettercam | mss
     fps: int = 10
@@ -65,7 +72,6 @@ class InputCfg:
     press_hold_ms: int = 90
     between_press_ms: int = 200
     jitter_ms: int = 60
-    require_foreground: bool = True
 
 
 @dataclass
@@ -90,7 +96,7 @@ class DeleteCfg:
 
 @dataclass
 class Config:
-    dry_run: bool
+    general: GeneralCfg
     capture: CaptureCfg
     match: MatchCfg
     input: InputCfg
@@ -102,7 +108,7 @@ class Config:
 
 def get_defaults() -> Config:
     return Config(
-        dry_run=False,
+        general=GeneralCfg(),
         capture=CaptureCfg(),
         match=MatchCfg(),
         input=InputCfg(),
@@ -119,7 +125,9 @@ DEFAULT_INI_TEMPLATE = """\
 
 [general]
 ; dry_run = true 時只跑導航流程，不實際執行消耗操作。
-dry_run = {defaults.dry_run}
+dry_run = {defaults.general.dry_run}
+always_on_top = {defaults.general.always_on_top}
+auto_update = {defaults.general.auto_update}
 
 [capture]
 ; auto -> 優先使用 bettercam (較快),失敗會退回 mss
@@ -137,7 +145,6 @@ scale = {defaults.match.scale}
 press_hold_ms = {defaults.input.press_hold_ms}
 between_press_ms = {defaults.input.between_press_ms}
 jitter_ms = {defaults.input.jitter_ms}
-require_foreground = {defaults.input.require_foreground}
 
 [farm_sp]
 ; 要刷幾次，必須 >= 1。
@@ -177,7 +184,17 @@ def load() -> Config:
     defaults = get_defaults()
 
     return Config(
-        dry_run=parser.getboolean("general", "dry_run", fallback=defaults.dry_run),
+        general=GeneralCfg(
+            dry_run=parser.getboolean(
+                "general", "dry_run", fallback=defaults.general.dry_run
+            ),
+            always_on_top=parser.getboolean(
+                "general", "always_on_top", fallback=defaults.general.always_on_top
+            ),
+            auto_update=parser.getboolean(
+                "general", "auto_update", fallback=defaults.general.auto_update
+            ),
+        ),
         capture=CaptureCfg(
             backend=parser.get("capture", "backend", fallback=defaults.capture.backend),
             fps=parser.getint("capture", "fps", fallback=defaults.capture.fps),
@@ -203,11 +220,6 @@ def load() -> Config:
             ),
             jitter_ms=parser.getint(
                 "input", "jitter_ms", fallback=defaults.input.jitter_ms
-            ),
-            require_foreground=parser.getboolean(
-                "input",
-                "require_foreground",
-                fallback=defaults.input.require_foreground,
             ),
         ),
         farm_sp=FarmSPCfg(
@@ -246,7 +258,9 @@ def load() -> Config:
 def save(conf: Config) -> None:
     parser = configparser.ConfigParser()
     parser["general"] = {
-        "dry_run": str(conf.dry_run),
+        "dry_run": str(conf.general.dry_run),
+        "always_on_top": str(conf.general.always_on_top),
+        "auto_update": str(conf.general.auto_update),
     }
     parser["capture"] = {
         "backend": conf.capture.backend,
@@ -262,7 +276,6 @@ def save(conf: Config) -> None:
         "press_hold_ms": str(conf.input.press_hold_ms),
         "between_press_ms": str(conf.input.between_press_ms),
         "jitter_ms": str(conf.input.jitter_ms),
-        "require_foreground": str(conf.input.require_foreground),
     }
     parser["farm_sp"] = {
         "target_runs": str(conf.farm_sp.target_runs),

@@ -203,8 +203,6 @@ class StepRunner:
         return False
 
     def foreground_tick(self, win) -> Literal["ok", "retry", "stopped"]:
-        if not self.conf.input.require_foreground:
-            return "ok"
         if window.is_foreground(win):
             return "ok"
         if self.sleep(250):

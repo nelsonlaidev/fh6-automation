@@ -135,7 +135,7 @@ class RemoveCarRunner(StepRunner):
             if time.monotonic() >= deadline:
                 return False
 
-            if conf.input.require_foreground and not window.is_foreground(self.win):
+            if not window.is_foreground(self.win):
                 if self.sleep(250):
                     return False
                 continue
