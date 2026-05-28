@@ -75,3 +75,8 @@ uv run .\src\main.py
 ```powershell
 .\build_exe.ps1
 ```
+
+
+## 授權
+
+[AGPL-3.0](LICENSE)
