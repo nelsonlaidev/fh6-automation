@@ -65,33 +65,32 @@ def is_self_elevated() -> bool:
 
 
 def check_elevation_mismatch(win: gw.Window) -> bool:
-    """檢查目標視窗是否因權限較高而可能攔截 SendInput。
+    """檢查目標視窗的程序是否以較高權限執行。
 
-    回傳 True 代表偵測到可能的權限不一致（我們未提升，但無法對目標視窗發送測試訊息）。
+    回傳 True 代表我們未提升，但目標程序已提升，SendInput 會被 UIPI 攔截。
     """
     if is_self_elevated():
         return False
 
-    # 嘗試對目標視窗發送一個無害的 WM_NULL 訊息。
-    # 如果被 UIPI 攔截，SendMessageTimeout 會失敗。
-    import ctypes.wintypes
+    import win32api
+    import win32con
+    import win32process
+    import win32security
 
-    SMTO_ABORTIFHUNG = 0x0002
-    WM_NULL = 0x0000
-    result = ctypes.wintypes.DWORD()
-
-    ret = ctypes.windll.user32.SendMessageTimeoutW(
-        win._hWnd,
-        WM_NULL,
-        0,
-        0,
-        SMTO_ABORTIFHUNG,
-        100,
-        ctypes.byref(result),
-    )
-
-    if ret == 0:
-        logger.warning("window: 偵測到權限不一致，SendInput 無法送達遊戲視窗（請勿以系統管理員身分執行遊戲）")
+    try:
+        _, pid = win32process.GetWindowThreadProcessId(win._hWnd)
+        hProcess = win32api.OpenProcess(win32con.PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        try:
+            hToken = win32security.OpenProcessToken(hProcess, win32con.TOKEN_QUERY)
+            elevation = win32security.GetTokenInformation(hToken, win32security.TokenElevation)
+            if elevation:
+                logger.warning("window: 偵測到權限不一致，SendInput 無法送達遊戲視窗（請勿以系統管理員身分執行遊戲）")
+                return True
+        finally:
+            win32api.CloseHandle(hProcess)
+    except Exception as e:
+        # 無法查詢目標程序 token（例如受保護程序），保守假設有問題
+        logger.warning("window: 無法檢查遊戲程序權限：{}", e)
         return True
 
     return False
