@@ -280,9 +280,41 @@ class App(QMainWindow):
             "remove_car": conf.remove_car.quantity,
         }[step_id]
 
+    def update_tab_highlight(self) -> None:
+        for sid, btn in self.step_btns.items():
+            selected = sid == self.current
+            if self.step_btn_selected[sid] != selected:
+                if selected:
+                    btn.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {COLOR_ACCENT};
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            text-align: left;
+                            padding-left: 12px;
+                        }}
+                        """)
+                else:
+                    btn.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: transparent;
+                            color: {COLOR_TEXT};
+                            border: none;
+                            border-radius: 4px;
+                            text-align: left;
+                            padding-left: 12px;
+                        }}
+                        QPushButton:hover {{
+                            background-color: {COLOR_HOVER};
+                        }}
+                        """)
+                self.step_btn_selected[sid] = selected
+
     def show_step(self, step_id: str) -> None:
         self.current = step_id
         self.stack.setCurrentWidget(self.step_frames[step_id])
+        self.update_tab_highlight()
 
     def on_start(self, step_id: str) -> None:
         running = self.any_running()
@@ -399,35 +431,7 @@ class App(QMainWindow):
                 f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
             )
 
-        for sid, btn in self.step_btns.items():
-            selected = sid == self.current
-            if self.step_btn_selected[sid] != selected:
-                if selected:
-                    btn.setStyleSheet(f"""
-                        QPushButton {{
-                            background-color: {COLOR_ACCENT};
-                            color: white;
-                            border: none;
-                            border-radius: 4px;
-                            text-align: left;
-                            padding-left: 12px;
-                        }}
-                        """)
-                else:
-                    btn.setStyleSheet(f"""
-                        QPushButton {{
-                            background-color: transparent;
-                            color: {COLOR_TEXT};
-                            border: none;
-                            border-radius: 4px;
-                            text-align: left;
-                            padding-left: 12px;
-                        }}
-                        QPushButton:hover {{
-                            background-color: {COLOR_HOVER};
-                        }}
-                        """)
-                self.step_btn_selected[sid] = selected
+        self.update_tab_highlight()
 
         frame = self.step_frames[self.current]
         other_running = any_running and running_id != self.current
