@@ -27,6 +27,7 @@ def tap(key: str, hold_ms: int = 90, gap_ms: int = 220, jitter_ms: int = 60) -> 
         logger.debug("keys: keyUp('{}') 成功（tap，hold={}ms）", key, hold_ms)
     except Exception as e:
         logger.error("keys: keyUp('{}') 失敗：{}", key, e)
+    sleep_ms(gap_ms, jitter_ms)
 
 
 def hold(key: str) -> None:
