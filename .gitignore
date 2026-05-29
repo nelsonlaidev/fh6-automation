@@ -15,3 +15,5 @@ Output/
 # Logs / local data
 *.log
 .local/
+
+version_info.txt
