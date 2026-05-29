@@ -134,6 +134,13 @@ class StepRunner:
 
         window.check_elevation_mismatch(win)
 
+        if window.check_elevation_mismatch(win):
+            self.finish(
+                StopReason.ERROR,
+                "偵測到權限不足，按鍵無法送達遊戲。請勿以系統管理員身分執行 Forza Horizon 6。",
+            )
+            return
+
         rect = window.client_rect(win)
         # 模板以 16:9 解析度製作（如 3840x2160），但遊戲視窗可能是 16:10、21:9
         # 等其他比例。Forza 會在視窗內以 letterbox / pillarbox 方式渲染 16:9

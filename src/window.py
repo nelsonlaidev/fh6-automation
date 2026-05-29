@@ -91,7 +91,7 @@ def check_elevation_mismatch(win: gw.Window) -> bool:
     )
 
     if ret == 0:
-        logger.warning("window: 偵測到權限不一致，SendInput 可能無法送達遊戲視窗（請以系統管理員身分執行）")
+        logger.warning("window: 偵測到權限不一致，SendInput 無法送達遊戲視窗（請勿以系統管理員身分執行遊戲）")
         return True
 
     return False
