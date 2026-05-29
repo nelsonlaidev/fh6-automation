@@ -1,18 +1,34 @@
 """設定視窗。"""
 
-from tkinter import messagebox
 from typing import Callable
 
-import customtkinter as ctk
 from loguru import logger
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
 
 import config as cfg
 import updater
 
 FONT_SIZE_HEADING = 14
 
+LABEL_WIDTH = 180
+FIELD_WIDTH = 120
 
-class SettingsWindow(ctk.CTkToplevel):
+
+class SettingsWindow(QDialog):
     def __init__(
         self,
         parent,
@@ -23,161 +39,208 @@ class SettingsWindow(ctk.CTkToplevel):
         ) = None,
     ) -> None:
         super().__init__(parent)
-        self.title("設定")
-        self.resizable(False, False)
-        self.attributes("-topmost", True)
+        self.setWindowTitle("設定")
+        self.setModal(True)
+        self.setFixedSize(480, 560)
+        # 視窗置頂，避免被遊戲視窗遮蓋。
+        self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
+
+        if parent is not None:
+            # 將設定視窗對齊主視窗左上角。
+            self.move(parent.x(), parent.y())
+
         self.conf = conf
         self.on_save = on_save
         self.on_check_update = on_check_update
 
-        w, h = 480, 560
-        x = parent.winfo_x()
-        y = parent.winfo_y()
-        self.geometry(f"{w}x{h}+{x}+{y}")
-
         self.build_ui()
-        self.after(100, self.focus)
 
     def build_ui(self) -> None:
-        scroll = ctk.CTkScrollableFrame(self)
-        scroll.pack(fill="both", expand=True, padx=16, pady=(16, 8))
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(16, 16, 16, 16)
+        outer.setSpacing(8)
+
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+
+        form = QWidget()
+        form_layout = QVBoxLayout(form)
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(2)
+        form_layout.setAlignment(Qt.AlignTop)
+        self.form_layout = form_layout
+
+        scroll.setWidget(form)
+        outer.addWidget(scroll, stretch=1)
+
         conf = self.conf
 
-        self.section(scroll, "一般")
+        # 一般
+        self.section("一般")
         self.var_dry_run = self.checkbox(
-            scroll, "Dry Run（不實際執行消耗操作）", conf.general.dry_run
+            "Dry Run（不實際執行消耗操作）", conf.general.dry_run
         )
-        self.var_always_on_top = self.checkbox(
-            scroll, "視窗置頂", conf.general.always_on_top
-        )
-        self.var_auto_update = self.checkbox(
-            scroll, "啟動時檢查更新", conf.general.auto_update
-        )
+        self.var_always_on_top = self.checkbox("視窗置頂", conf.general.always_on_top)
+        self.var_auto_update = self.checkbox("啟動時檢查更新", conf.general.auto_update)
 
-        self.update_row = ctk.CTkFrame(scroll, fg_color="transparent")
-        self.update_row.pack(fill="x", pady=(4, 2))
-        self.btn_check_update = ctk.CTkButton(
-            self.update_row,
-            text="立即檢查更新",
-            width=140,
-            command=self.handle_check_update,
-        )
-        self.btn_check_update.pack(side="left")
-        self.lbl_update_status = ctk.CTkLabel(
-            self.update_row, text="", text_color="gray60", anchor="w"
-        )
-        self.lbl_update_status.pack(side="left", padx=(8, 0), fill="x", expand=True)
+        # 立即檢查更新按鈕 + 狀態文字
+        update_row = QWidget()
+        update_layout = QHBoxLayout(update_row)
+        update_layout.setContentsMargins(0, 4, 0, 2)
+        update_layout.setSpacing(8)
 
-        self.skipped_row = ctk.CTkFrame(scroll, fg_color="transparent")
-        self.skipped_row.pack(fill="x", pady=(2, 2))
-        self.lbl_skipped = ctk.CTkLabel(self.skipped_row, anchor="w", text="")
-        self.lbl_skipped.pack(side="left", fill="x", expand=True)
-        self.btn_clear_skip = ctk.CTkButton(
-            self.skipped_row,
-            text="清除",
-            width=70,
-            fg_color="transparent",
-            border_width=1,
-            command=self.handle_clear_skip,
-        )
-        self.btn_clear_skip.pack(side="right")
+        self.btn_check_update = QPushButton("立即檢查更新")
+        self.btn_check_update.setFixedWidth(140)
+        self.btn_check_update.clicked.connect(self.handle_check_update)
+        update_layout.addWidget(self.btn_check_update)
+
+        self.lbl_update_status = QLabel("")
+        self.lbl_update_status.setStyleSheet("color: gray;")
+        update_layout.addWidget(self.lbl_update_status, stretch=1)
+
+        form_layout.addWidget(update_row)
+
+        # 已跳過版本顯示列
+        self.skipped_row = QWidget()
+        skipped_layout = QHBoxLayout(self.skipped_row)
+        skipped_layout.setContentsMargins(0, 2, 0, 2)
+        skipped_layout.setSpacing(8)
+
+        self.lbl_skipped = QLabel("")
+        skipped_layout.addWidget(self.lbl_skipped, stretch=1)
+
+        self.btn_clear_skip = QPushButton("清除")
+        self.btn_clear_skip.setFixedWidth(70)
+        self.btn_clear_skip.clicked.connect(self.handle_clear_skip)
+        skipped_layout.addWidget(self.btn_clear_skip)
+
+        form_layout.addWidget(self.skipped_row)
         self.refresh_skipped_row()
 
-        self.section(scroll, "擷取")
+        # 擷取
+        self.section("擷取")
         self.var_backend = self.dropdown(
-            scroll, "Backend", conf.capture.backend, ["auto", "bettercam", "mss"]
+            "Backend", conf.capture.backend, ["auto", "bettercam", "mss"]
         )
-        self.var_fps = self.entry(scroll, "FPS", conf.capture.fps)
+        self.var_fps = self.entry("FPS", conf.capture.fps)
 
-        self.section(scroll, "比對")
-        self.var_threshold = self.entry(
-            scroll, "門檻 (threshold)", conf.match.threshold
-        )
+        # 比對
+        self.section("比對")
+        self.var_threshold = self.entry("門檻 (threshold)", conf.match.threshold)
         self.var_stale_timeout = self.entry(
-            scroll, "未辨識逾時 (ms)", conf.match.stale_timeout_ms
+            "未辨識逾時 (ms)", conf.match.stale_timeout_ms
         )
         self.var_stuck_timeout = self.entry(
-            scroll, "卡住逾時 (ms)", conf.match.stuck_timeout_ms
+            "卡住逾時 (ms)", conf.match.stuck_timeout_ms
         )
 
-        self.section(scroll, "輸入")
-        self.var_press_hold = self.entry(
-            scroll, "按鍵持續 (ms)", conf.input.press_hold_ms
-        )
+        # 輸入
+        self.section("輸入")
+        self.var_press_hold = self.entry("按鍵持續 (ms)", conf.input.press_hold_ms)
         self.var_between_press = self.entry(
-            scroll, "按鍵間隔 (ms)", conf.input.between_press_ms
+            "按鍵間隔 (ms)", conf.input.between_press_ms
         )
-        self.var_jitter = self.entry(scroll, "抖動 (ms)", conf.input.jitter_ms)
+        self.var_jitter = self.entry("抖動 (ms)", conf.input.jitter_ms)
 
-        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
-        btn_frame.pack(fill="x", padx=16, pady=(0, 16))
+        # 底部按鈕列
+        btn_row = QWidget()
+        btn_layout = QHBoxLayout(btn_row)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(8)
+        btn_layout.addStretch(1)
 
-        ctk.CTkButton(btn_frame, text="儲存", width=100, command=self.save).pack(
-            side="right", padx=(8, 0)
-        )
-        ctk.CTkButton(
-            btn_frame,
-            text="取消",
-            width=100,
-            fg_color="transparent",
-            border_width=1,
-            command=self.destroy,
-        ).pack(side="right")
+        cancel = QPushButton("取消")
+        cancel.setFixedWidth(100)
+        cancel.clicked.connect(self.reject)
+        btn_layout.addWidget(cancel)
 
-    def section(self, parent, title: str) -> None:
-        ctk.CTkLabel(
-            parent,
-            text=title,
-            font=ctk.CTkFont(size=FONT_SIZE_HEADING, weight="bold"),
-        ).pack(fill="x", pady=(12, 4))
+        save = QPushButton("儲存")
+        save.setFixedWidth(100)
+        save.setDefault(True)
+        save.clicked.connect(self.save)
+        btn_layout.addWidget(save)
 
-    def checkbox(self, parent, label: str, value: bool) -> ctk.BooleanVar:
-        var = ctk.BooleanVar(value=value)
-        ctk.CTkCheckBox(parent, text=label, variable=var).pack(fill="x", pady=2)
-        return var
+        outer.addWidget(btn_row)
 
-    def entry(self, parent, label: str, value) -> ctk.StringVar:
-        row = ctk.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", pady=2)
-        ctk.CTkLabel(row, text=label, width=180, anchor="w").pack(side="left")
-        var = ctk.StringVar(value=str(value))
-        ctk.CTkEntry(row, textvariable=var, width=120).pack(side="right")
-        return var
+    def section(self, title: str) -> None:
+        """加上粗體的小節標題。"""
+        label = QLabel(title)
+        font = label.font()
+        font.setPointSize(FONT_SIZE_HEADING)
+        font.setBold(True)
+        label.setFont(font)
+        label.setContentsMargins(0, 12, 0, 4)
+        self.form_layout.addWidget(label)
 
-    def dropdown(
-        self, parent, label: str, value: str, options: list[str]
-    ) -> ctk.StringVar:
-        row = ctk.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", pady=2)
-        ctk.CTkLabel(row, text=label, width=180, anchor="w").pack(side="left")
-        var = ctk.StringVar(value=value)
-        ctk.CTkOptionMenu(row, variable=var, values=options, width=120).pack(
-            side="right"
-        )
-        return var
+    def checkbox(self, label: str, value: bool) -> QCheckBox:
+        cb = QCheckBox(label)
+        cb.setChecked(bool(value))
+        self.form_layout.addWidget(cb)
+        return cb
+
+    def entry(self, label: str, value) -> QLineEdit:
+        row = QWidget()
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(0, 2, 0, 2)
+        layout.setSpacing(8)
+
+        lbl = QLabel(label)
+        lbl.setMinimumWidth(LABEL_WIDTH)
+        layout.addWidget(lbl)
+        layout.addStretch(1)
+
+        edit = QLineEdit(str(value))
+        edit.setFixedWidth(FIELD_WIDTH)
+        layout.addWidget(edit)
+
+        self.form_layout.addWidget(row)
+        return edit
+
+    def dropdown(self, label: str, value: str, options: list[str]) -> QComboBox:
+        row = QWidget()
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(0, 2, 0, 2)
+        layout.setSpacing(8)
+
+        lbl = QLabel(label)
+        lbl.setMinimumWidth(LABEL_WIDTH)
+        layout.addWidget(lbl)
+        layout.addStretch(1)
+
+        combo = QComboBox()
+        combo.addItems(options)
+        if value in options:
+            combo.setCurrentText(value)
+        combo.setFixedWidth(FIELD_WIDTH)
+        layout.addWidget(combo)
+
+        self.form_layout.addWidget(row)
+        return combo
 
     def save(self) -> None:
         try:
             conf = cfg.Config(
                 general=cfg.GeneralCfg(
-                    dry_run=self.var_dry_run.get(),
-                    always_on_top=self.var_always_on_top.get(),
-                    auto_update=self.var_auto_update.get(),
+                    dry_run=self.var_dry_run.isChecked(),
+                    always_on_top=self.var_always_on_top.isChecked(),
+                    auto_update=self.var_auto_update.isChecked(),
+                    skipped_version=self.conf.general.skipped_version,
                 ),
                 capture=cfg.CaptureCfg(
-                    backend=self.var_backend.get(),
-                    fps=int(self.var_fps.get()),
+                    backend=self.var_backend.currentText(),
+                    fps=int(self.var_fps.text()),
                 ),
                 match=cfg.MatchCfg(
-                    threshold=float(self.var_threshold.get()),
-                    stale_timeout_ms=int(self.var_stale_timeout.get()),
-                    stuck_timeout_ms=int(self.var_stuck_timeout.get()),
+                    threshold=float(self.var_threshold.text()),
+                    stale_timeout_ms=int(self.var_stale_timeout.text()),
+                    stuck_timeout_ms=int(self.var_stuck_timeout.text()),
                     reference_height=self.conf.match.reference_height,
                 ),
                 input=cfg.InputCfg(
-                    press_hold_ms=int(self.var_press_hold.get()),
-                    between_press_ms=int(self.var_between_press.get()),
-                    jitter_ms=int(self.var_jitter.get()),
+                    press_hold_ms=int(self.var_press_hold.text()),
+                    between_press_ms=int(self.var_between_press.text()),
+                    jitter_ms=int(self.var_jitter.text()),
                 ),
                 farm_sp=self.conf.farm_sp,
                 buy_car=self.conf.buy_car,
@@ -189,21 +252,23 @@ class SettingsWindow(ctk.CTkToplevel):
 
             if self.on_save:
                 self.on_save(conf)
-            self.destroy()
+
+            self.accept()
 
         except (ValueError, OSError) as e:
             logger.warning("Failed to save settings: {}", e)
+            QMessageBox.critical(self, "儲存失敗", f"無法儲存設定：{e}")
 
     def refresh_skipped_row(self) -> None:
         skipped = self.conf.general.skipped_version
         if skipped:
-            self.lbl_skipped.configure(text=f"已跳過版本：{skipped}")
-            self.btn_clear_skip.configure(state="normal")
-            self.skipped_row.pack(fill="x", pady=(2, 2))
+            self.lbl_skipped.setText(f"已跳過版本：{skipped}")
+            self.btn_clear_skip.setEnabled(True)
+            self.skipped_row.setVisible(True)
         else:
-            self.lbl_skipped.configure(text="")
-            self.btn_clear_skip.configure(state="disabled")
-            self.skipped_row.pack_forget()
+            self.lbl_skipped.setText("")
+            self.btn_clear_skip.setEnabled(False)
+            self.skipped_row.setVisible(False)
 
     def handle_clear_skip(self) -> None:
         try:
@@ -217,26 +282,24 @@ class SettingsWindow(ctk.CTkToplevel):
     def handle_check_update(self) -> None:
         if self.on_check_update is None:
             return
-        self.btn_check_update.configure(state="disabled", text="檢查中…")
-        self.lbl_update_status.configure(text="", text_color="gray60")
+        self.btn_check_update.setEnabled(False)
+        self.btn_check_update.setText("檢查中…")
+        self.lbl_update_status.setText("")
+        self.lbl_update_status.setStyleSheet("color: gray;")
         self.on_check_update(self.on_check_update_result)
 
     def on_check_update_result(self, result: "updater.CheckResult") -> None:
-        self.btn_check_update.configure(state="normal", text="立即檢查更新")
+        self.btn_check_update.setEnabled(True)
+        self.btn_check_update.setText("立即檢查更新")
         if result.status == "available":
             # 對話框已由 App.trigger_manual_update_check 開出
-            self.lbl_update_status.configure(text="發現新版本", text_color="#3b82f6")
+            self.lbl_update_status.setText("發現新版本")
+            self.lbl_update_status.setStyleSheet("color: #3b82f6;")
         elif result.status == "up_to_date":
-            self.lbl_update_status.configure(text="已是最新版本", text_color="#22c55e")
-            messagebox.showinfo(
-                "已是最新版本",
-                "目前已是最新版本。",
-                parent=self,
-            )
+            self.lbl_update_status.setText("已是最新版本")
+            self.lbl_update_status.setStyleSheet("color: #22c55e;")
+            QMessageBox.information(self, "已是最新版本", "目前已是最新版本。")
         else:
-            self.lbl_update_status.configure(text="檢查失敗", text_color="#ef4444")
-            messagebox.showerror(
-                "檢查失敗",
-                result.error or "無法檢查更新",
-                parent=self,
-            )
+            self.lbl_update_status.setText("檢查失敗")
+            self.lbl_update_status.setStyleSheet("color: #ef4444;")
+            QMessageBox.critical(self, "檢查失敗", result.error or "無法檢查更新")
