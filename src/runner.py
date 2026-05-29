@@ -135,7 +135,14 @@ class StepRunner:
             return
 
         rect = window.client_rect(win)
-        ratio = rect.height / conf.match.reference_height
+        # 模板以 16:9 解析度製作（如 3840x2160），但遊戲視窗可能是 16:10、21:9
+        # 等其他比例。Forza 會在視窗內以 letterbox / pillarbox 方式渲染 16:9
+        # UI，因此縮放比例取「16:9 參考框塞進視窗」的最大比，也就是寬高 ratio
+        # 中較小者。直接用 rect.height / reference_height 在 16:10 上會偏大，
+        # 例如 2560x1600 應該得到 0.667（由寬度決定）而非 0.741。
+        reference_height = conf.match.reference_height
+        reference_width = reference_height * 16 / 9
+        ratio = min(rect.width / reference_width, rect.height / reference_height)
         logger.info(
             "Forza found: {}x{} (ratio={:.3f})",
             rect.width,

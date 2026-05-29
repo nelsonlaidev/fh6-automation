@@ -28,7 +28,9 @@ def bundled_templates_dir() -> Path:
 def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray]:
     """載入模板並按 ratio 縮放。
 
-    ratio = 視窗高度 / 模板參考高度（例如 1080/2160 = 0.5）。
+    ratio = 視窗中可放下 16:9 參考解析度的最大縮放比，
+    等於 min(width / reference_width, height / reference_height)。
+    這樣在 16:10 / 21:9 等非 16:9 視窗也能算出正確的 UI 大小。
     """
     bundled = bundled_templates_dir()
     user = config.user_templates_dir()
