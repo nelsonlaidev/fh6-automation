@@ -231,8 +231,7 @@ def launch_installer_and_quit(parent, installer_path: str) -> None:
         creationflags = 0
         if sys.platform == "win32":
             creationflags = (
-                subprocess.DETACHED_PROCESS  # type: ignore[attr-defined]
-                | subprocess.CREATE_NEW_PROCESS_GROUP
+                subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
             )
         subprocess.Popen(
             [installer_path, "/VERYSILENT", "/SUPPRESSMSGBOXES"],
@@ -277,7 +276,7 @@ class UpdateDialog(QDialog):
         self.setWindowTitle("有新版本")
         self.setFixedSize(520, 460)
         # always-on-top
-        self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
         self.parent_app = parent
         self.info = info

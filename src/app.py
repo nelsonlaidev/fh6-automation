@@ -91,7 +91,6 @@ def open_in_explorer(path) -> None:
         logger.warning("Failed to open {}: {}", path, e)
 
 
-
 class App(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
@@ -100,7 +99,7 @@ class App(QMainWindow):
 
         self.conf = cfg.load()
         if self.conf.general.always_on_top:
-            self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
+            self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
         self.runners: dict[str, StepRunner] = {
             "farm_sp": FarmSPRunner(self.conf),
@@ -214,7 +213,7 @@ class App(QMainWindow):
             r = self.runner(sid)
             btn = QPushButton(r.label)
             btn.setFixedSize(120, 36)
-            btn.setCursor(Qt.PointingHandCursor)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.clicked.connect(lambda checked=False, s=sid: self.show_step(s))
             sidebar_layout.addWidget(btn)
             self.step_btns[sid] = btn
@@ -253,9 +252,8 @@ class App(QMainWindow):
         ):
             btn = QPushButton(text)
             btn.setFixedSize(100, 30)
-            btn.setCursor(Qt.PointingHandCursor)
-            btn.setStyleSheet(
-                f"""
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: transparent;
                     color: {COLOR_TEXT};
@@ -265,8 +263,7 @@ class App(QMainWindow):
                 QPushButton:hover {{
                     background-color: {COLOR_HOVER};
                 }}
-                """
-            )
+                """)
             btn.clicked.connect(cmd)
             footer.addWidget(btn)
 
@@ -317,10 +314,10 @@ class App(QMainWindow):
                 "此操作無法復原。\n\n"
                 "請確認車輛清單頂端是要刪除的目標，確定要繼續嗎?"
             ),
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
         )
-        return result == QMessageBox.Yes
+        return result == QMessageBox.StandardButton.Yes
 
     def on_stop(self, step_id: str) -> None:
         self.runner(step_id).stop()
@@ -369,7 +366,9 @@ class App(QMainWindow):
         self.conf = new_conf
         # 切換置頂旗標需要重新顯示視窗
         was_visible = self.isVisible()
-        self.setWindowFlag(Qt.WindowStaysOnTopHint, new_conf.general.always_on_top)
+        self.setWindowFlag(
+            Qt.WindowType.WindowStaysOnTopHint, new_conf.general.always_on_top
+        )
         if was_visible:
             self.show()
         for r in self.runners.values():
@@ -404,8 +403,7 @@ class App(QMainWindow):
             selected = sid == self.current
             if self.step_btn_selected[sid] != selected:
                 if selected:
-                    btn.setStyleSheet(
-                        f"""
+                    btn.setStyleSheet(f"""
                         QPushButton {{
                             background-color: {COLOR_ACCENT};
                             color: white;
@@ -414,11 +412,9 @@ class App(QMainWindow):
                             text-align: left;
                             padding-left: 12px;
                         }}
-                        """
-                    )
+                        """)
                 else:
-                    btn.setStyleSheet(
-                        f"""
+                    btn.setStyleSheet(f"""
                         QPushButton {{
                             background-color: transparent;
                             color: {COLOR_TEXT};
@@ -430,14 +426,12 @@ class App(QMainWindow):
                         QPushButton:hover {{
                             background-color: {COLOR_HOVER};
                         }}
-                        """
-                    )
+                        """)
                 self.step_btn_selected[sid] = selected
 
         frame = self.step_frames[self.current]
         other_running = any_running and running_id != self.current
         frame.refresh(disabled_due_to_other=other_running)
-
 
 
 class StepFrame(QWidget):
@@ -486,17 +480,14 @@ class StepFrame(QWidget):
         qty_row.setSpacing(8)
 
         qty_label = QLabel(runner.quantity_label)
-        qty_label.setStyleSheet(
-            f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_BODY}px;"
-        )
+        qty_label.setStyleSheet(f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_BODY}px;")
         qty_row.addWidget(qty_label)
 
         self.qty_edit = QLineEdit()
         self.qty_edit.setFixedWidth(80)
         self.qty_edit.setValidator(QIntValidator(1, 99999, self))
-        self.qty_edit.setAlignment(Qt.AlignRight)
-        self.qty_edit.setStyleSheet(
-            f"""
+        self.qty_edit.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.qty_edit.setStyleSheet(f"""
             QLineEdit {{
                 background-color: {COLOR_PANEL};
                 color: {COLOR_TEXT};
@@ -507,8 +498,7 @@ class StepFrame(QWidget):
             QLineEdit:disabled {{
                 color: {COLOR_MUTED};
             }}
-            """
-        )
+            """)
         qty_row.addWidget(self.qty_edit)
         qty_row.addStretch(1)
 
@@ -517,7 +507,7 @@ class StepFrame(QWidget):
         # 開始/停止按鈕
         self.toggle_btn = QPushButton("開始")
         self.toggle_btn.setFixedHeight(38)
-        self.toggle_btn.setCursor(Qt.PointingHandCursor)
+        self.toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.toggle_btn.clicked.connect(self.handle_toggle)
         self.apply_toggle_default_style()
         layout.addWidget(self.toggle_btn)
@@ -529,9 +519,8 @@ class StepFrame(QWidget):
 
         self.save_btn = QPushButton("儲存設定")
         self.save_btn.setFixedSize(100, 28)
-        self.save_btn.setCursor(Qt.PointingHandCursor)
-        self.save_btn.setStyleSheet(
-            f"""
+        self.save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.save_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent;
                 color: {COLOR_TEXT};
@@ -544,8 +533,7 @@ class StepFrame(QWidget):
             QPushButton:disabled {{
                 color: {COLOR_MUTED};
             }}
-            """
-        )
+            """)
         self.save_btn.clicked.connect(self.handle_save)
         save_row.addWidget(self.save_btn)
         layout.addLayout(save_row)
@@ -581,8 +569,7 @@ class StepFrame(QWidget):
         layout.addStretch(1)
 
     def apply_toggle_default_style(self) -> None:
-        self.toggle_btn.setStyleSheet(
-            f"""
+        self.toggle_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLOR_ACCENT};
                 color: white;
@@ -598,12 +585,10 @@ class StepFrame(QWidget):
                 background-color: {COLOR_BORDER};
                 color: {COLOR_MUTED};
             }}
-            """
-        )
+            """)
 
     def apply_toggle_stop_style(self) -> None:
-        self.toggle_btn.setStyleSheet(
-            f"""
+        self.toggle_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLOR_ERROR};
                 color: white;
@@ -615,21 +600,18 @@ class StepFrame(QWidget):
             QPushButton:hover {{
                 background-color: {COLOR_DANGER_HOVER};
             }}
-            """
-        )
+            """)
 
     def stat(self, grid: QGridLayout, row: int, label: str, value: str) -> QLabel:
         lbl = QLabel(label)
-        lbl.setStyleSheet(
-            f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
-        )
-        grid.addWidget(lbl, row, 0, Qt.AlignLeft)
+        lbl.setStyleSheet(f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;")
+        grid.addWidget(lbl, row, 0, Qt.AlignmentFlag.AlignLeft)
 
         v = QLabel(value)
         v.setStyleSheet(
             f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_BODY}px; font-weight: bold;"
         )
-        grid.addWidget(v, row, 1, Qt.AlignLeft)
+        grid.addWidget(v, row, 1, Qt.AlignmentFlag.AlignLeft)
         return v
 
     def read_quantity(self) -> int | None:
@@ -699,9 +681,7 @@ class StepFrame(QWidget):
         elapsed = int(status.elapsed_s)
         m, s = divmod(elapsed, 60)
         h, m = divmod(m, 60)
-        self.lbl_elapsed.setText(
-            f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
-        )
+        self.lbl_elapsed.setText(f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}")
 
         if status.last_reason in ERROR_REASONS:
             self.message_sticky = True
@@ -782,20 +762,22 @@ def apply_dark_palette(app: QApplication) -> None:
     disabled = QColor(COLOR_MUTED)
     accent = QColor(COLOR_ACCENT)
 
-    palette.setColor(QPalette.Window, bg)
-    palette.setColor(QPalette.WindowText, text)
-    palette.setColor(QPalette.Base, panel)
-    palette.setColor(QPalette.AlternateBase, bg)
-    palette.setColor(QPalette.ToolTipBase, panel)
-    palette.setColor(QPalette.ToolTipText, text)
-    palette.setColor(QPalette.Text, text)
-    palette.setColor(QPalette.Disabled, QPalette.Text, disabled)
-    palette.setColor(QPalette.Button, panel)
-    palette.setColor(QPalette.ButtonText, text)
-    palette.setColor(QPalette.Disabled, QPalette.ButtonText, disabled)
-    palette.setColor(QPalette.Highlight, accent)
-    palette.setColor(QPalette.HighlightedText, QColor("white"))
-    palette.setColor(QPalette.Link, accent)
+    palette.setColor(QPalette.ColorRole.Window, bg)
+    palette.setColor(QPalette.ColorRole.WindowText, text)
+    palette.setColor(QPalette.ColorRole.Base, panel)
+    palette.setColor(QPalette.ColorRole.AlternateBase, bg)
+    palette.setColor(QPalette.ColorRole.ToolTipBase, panel)
+    palette.setColor(QPalette.ColorRole.ToolTipText, text)
+    palette.setColor(QPalette.ColorRole.Text, text)
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, disabled)
+    palette.setColor(QPalette.ColorRole.Button, panel)
+    palette.setColor(QPalette.ColorRole.ButtonText, text)
+    palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, disabled
+    )
+    palette.setColor(QPalette.ColorRole.Highlight, accent)
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor("white"))
+    palette.setColor(QPalette.ColorRole.Link, accent)
 
     app.setPalette(palette)
 
@@ -806,7 +788,7 @@ def run() -> None:
     logger.info("Launching FH6 Automation (python {})", sys.version.split()[0])
 
     qt_app = QApplication.instance() or QApplication(sys.argv)
-    apply_dark_palette(qt_app)
+    apply_dark_palette(qt_app)  # type: ignore[arg-type]
 
     window = App()
     window.show()

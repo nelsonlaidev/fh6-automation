@@ -43,7 +43,7 @@ class SettingsWindow(QDialog):
         self.setModal(True)
         self.setFixedSize(480, 560)
         # 視窗置頂，避免被遊戲視窗遮蓋。
-        self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
         if parent is not None:
             # 將設定視窗對齊主視窗左上角。
@@ -62,13 +62,13 @@ class SettingsWindow(QDialog):
 
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
 
         form = QWidget()
         form_layout = QVBoxLayout(form)
         form_layout.setContentsMargins(0, 0, 0, 0)
         form_layout.setSpacing(2)
-        form_layout.setAlignment(Qt.AlignTop)
+        form_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.form_layout = form_layout
 
         scroll.setWidget(form)
