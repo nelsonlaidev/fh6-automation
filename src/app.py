@@ -357,12 +357,13 @@ class App(QMainWindow):
         open_in_explorer(cfg.user_templates_dir())
 
     def open_config(self) -> None:
-        SettingsWindow(
+        dlg = SettingsWindow(
             self,
             self.conf,
             on_save=self.apply_settings,
             on_check_update=self.trigger_manual_update_check,
         )
+        dlg.exec()
 
     def apply_settings(self, new_conf: cfg.Config) -> None:
         self.conf = new_conf
