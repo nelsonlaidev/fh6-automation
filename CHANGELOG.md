@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### 調整
+
+- GUI 框架從 customtkinter 遷移至 PySide6，外觀改為原生深色主題，HiDPI 支援更完善。
+- 更新對話框的 release notes 改用 Qt 原生 Markdown 渲染，支援完整語法（表格、圖片等）。
+
+### 破壞性變更
+
+- GUI 框架從 customtkinter 換為 PySide6。開發環境需重新執行 `uv sync` 安裝新依賴。對終端使用者無影響（installer 不變）。
+
 ## v0.3.0
 
 ### 新增
@@ -10,14 +21,8 @@
 
 ### 調整
 
-- GUI 框架從 customtkinter 遷移至 PySide6，外觀改為原生深色主題，HiDPI 支援更完善。
-- 更新對話框的 release notes 改用 Qt 原生 Markdown 渲染，支援完整語法（表格、圖片等）。
 - 安裝程式改為支援靜默升級（/VERYSILENT），自動關閉舊版並啟動新版，使用者不再看到精靈式安裝畫面（升級到此版本後生效）。
 - 版本號解析改用嚴格 regex，遇到無法解析的 tag（如預發版 `-rc1`）會直接視為「無更新」而非崩潰。
-
-### 破壞性變更
-
-- GUI 框架從 customtkinter 換為 PySide6。開發環境需重新執行 `uv sync` 安裝新依賴。對終端使用者無影響（installer 不變）。
 
 ### 修正
 
