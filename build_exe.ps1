@@ -34,6 +34,9 @@ uv run python -m PyInstaller `
   --add-data "pyproject.toml;." `
   --version-file version_info.txt `
   --paths src `
+  --exclude-module tkinter `
+  --exclude-module PyQt5 `
+  --exclude-module PyQt6 `
   src/main.py
 
 iscc /DMyAppVersion="$v" installer.iss

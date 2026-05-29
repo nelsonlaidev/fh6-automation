@@ -1,19 +1,35 @@
+"""主視窗。使用 PySide6 實作。"""
+
 import os
 import subprocess
 import sys
 import time
-from tkinter import messagebox
 from typing import Callable
 
-import customtkinter as ctk
 from loguru import logger
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QIntValidator, QPalette, QColor
+from PySide6.QtWidgets import (
+    QApplication,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 import config as cfg
 from runner import StepRunner
 from settings import SettingsWindow
 from steps.buy_car import BuyCarRunner
-from steps.remove_car import RemoveCarRunner
 from steps.farm_sp import FarmSPRunner
+from steps.remove_car import RemoveCarRunner
 from steps.upgrade_car import UpgradeCarRunner
 import updater
 
@@ -28,8 +44,14 @@ COLOR_RUNNING = "#22c55e"
 COLOR_IDLE = "#6b7280"
 COLOR_ERROR = "#ef4444"
 COLOR_WARNING = "#f59e0b"
-COLOR_MUTED = "gray60"
+COLOR_MUTED = "#9ca3af"
 COLOR_ACCENT = "#3b82f6"
+COLOR_TEXT = "#e5e7eb"
+COLOR_BG = "#1f1f1f"
+COLOR_PANEL = "#2a2a2a"
+COLOR_BORDER = "#3a3a3a"
+COLOR_HOVER = "#3a3a3a"
+COLOR_DANGER_HOVER = "#b91c1c"
 
 ERROR_REASONS = {
     "ui_unrecognized",
@@ -69,18 +91,16 @@ def open_in_explorer(path) -> None:
         logger.warning("Failed to open {}: {}", path, e)
 
 
-class App(ctk.CTk):
+class App(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.title("FH6 自動化")
-        self.geometry("680x520")
-        self.resizable(False, False)
-
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
+        self.setWindowTitle("FH6 自動化")
+        self.setMinimumSize(680, 520)
+        self.resize(680, 520)
 
         self.conf = cfg.load()
-        self.attributes("-topmost", self.conf.general.always_on_top)
+        if self.conf.general.always_on_top:
+            self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
         self.runners: dict[str, StepRunner] = {
             "farm_sp": FarmSPRunner(self.conf),
@@ -91,12 +111,20 @@ class App(ctk.CTk):
         self.step_order = list(self.runners.keys())
         self.current = self.step_order[0]
 
+        self.step_btns: dict[str, QPushButton] = {}
+        self.step_btn_selected: dict[str, bool | None] = {}
+        self.step_frames: dict[str, "StepFrame"] = {}
+
         self.build_ui()
         self.show_step(self.current)
-        self.after(REFRESH_MS, self.refresh)
+
+        self.refresh_timer = QTimer(self)
+        self.refresh_timer.setInterval(REFRESH_MS)
+        self.refresh_timer.timeout.connect(self.refresh)
+        self.refresh_timer.start()
 
         if self.conf.general.auto_update:
-            self.after(500, self.start_auto_update_check)
+            QTimer.singleShot(500, self.start_auto_update_check)
 
     def start_auto_update_check(self) -> None:
         updater.check_async(self, self.on_auto_update_result)
@@ -136,81 +164,71 @@ class App(ctk.CTk):
         return None
 
     def build_ui(self) -> None:
-        outer = ctk.CTkFrame(self, fg_color="transparent")
-        outer.pack(fill="both", expand=True, padx=16, pady=16)
+        central = QWidget(self)
+        self.setCentralWidget(central)
 
-        header = ctk.CTkFrame(outer, fg_color="transparent")
-        header.pack(fill="x")
+        outer = QVBoxLayout(central)
+        outer.setContentsMargins(16, 16, 16, 16)
+        outer.setSpacing(0)
 
-        ctk.CTkLabel(
-            header,
-            text="超級轉盤刷取",
-            font=ctk.CTkFont(size=FONT_SIZE_TITLE, weight="bold"),
-        ).pack(side="left")
+        # Header
+        header = QHBoxLayout()
+        header.setContentsMargins(0, 0, 0, 0)
 
-        self.pill_text = ctk.CTkLabel(
-            header,
-            text="閒置",
-            text_color=COLOR_MUTED,
-            font=ctk.CTkFont(size=FONT_SIZE_BODY),
+        title = QLabel("超級轉盤刷取")
+        title.setStyleSheet(
+            f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_TITLE}px; font-weight: bold;"
         )
-        self.pill_text.pack(side="right")
+        header.addWidget(title)
+        header.addStretch(1)
 
-        self.pill_dot = ctk.CTkLabel(
-            header,
-            text="●",
-            text_color=COLOR_IDLE,
-            font=ctk.CTkFont(size=FONT_SIZE_TITLE),
+        self.pill_dot = QLabel("●")
+        self.pill_dot.setStyleSheet(
+            f"color: {COLOR_IDLE}; font-size: {FONT_SIZE_TITLE}px;"
         )
-        self.pill_dot.pack(side="right", padx=(0, 4))
+        header.addWidget(self.pill_dot)
 
-        body = ctk.CTkFrame(outer, fg_color="transparent")
-        body.pack(fill="both", expand=True, pady=(12, 0))
-        body.grid_columnconfigure(0, weight=0)
-        body.grid_columnconfigure(1, weight=1)
-        body.grid_rowconfigure(0, weight=1)
+        self.pill_text = QLabel("閒置")
+        self.pill_text.setStyleSheet(
+            f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
+        )
+        self.pill_text.setContentsMargins(4, 0, 0, 0)
+        header.addWidget(self.pill_text)
 
-        tabs = ctk.CTkFrame(body)
-        tabs.grid(row=0, column=0, sticky="n", padx=(0, 12))
+        outer.addLayout(header)
 
-        self.step_btns: dict[str, ctk.CTkButton] = {}
-        self.step_btn_selected: dict[str, bool | None] = {}
+        # Body: sidebar + stack
+        body = QHBoxLayout()
+        body.setContentsMargins(0, 12, 0, 0)
+        body.setSpacing(12)
 
-        for row, sid in enumerate(self.step_order):
+        sidebar = QFrame()
+        sidebar.setStyleSheet(
+            f"QFrame {{ background-color: {COLOR_PANEL}; border-radius: 6px; }}"
+        )
+        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar_layout.setContentsMargins(6, 6, 6, 6)
+        sidebar_layout.setSpacing(3)
+
+        for sid in self.step_order:
             r = self.runner(sid)
-            btn = ctk.CTkButton(
-                tabs,
-                text=r.label,
-                width=120,
-                height=36,
-                anchor="w",
-                fg_color="transparent",
-                text_color=("gray10", "gray90"),
-                hover_color=("gray80", "gray25"),
-                command=lambda s=sid: self.show_step(s),
-            )
-            btn.grid(
-                row=row,
-                column=0,
-                sticky="ew",
-                padx=6,
-                pady=(
-                    6 if row == 0 else 3,
-                    6 if row == len(self.step_order) - 1 else 0,
-                ),
-            )
+            btn = QPushButton(r.label)
+            btn.setFixedSize(120, 36)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.clicked.connect(lambda checked=False, s=sid: self.show_step(s))
+            sidebar_layout.addWidget(btn)
             self.step_btns[sid] = btn
             self.step_btn_selected[sid] = None
 
-        self.content_holder = ctk.CTkFrame(body, fg_color="transparent")
-        self.content_holder.grid(row=0, column=1, sticky="nsew")
+        sidebar_layout.addStretch(1)
+        body.addWidget(sidebar, 0)
 
-        self.step_frames: dict[str, StepFrame] = {}
+        # Stacked content area
+        self.stack = QStackedWidget()
         for sid in self.step_order:
             r = self.runner(sid)
             initial_quantity = self.initial_quantity_for(sid)
             frame = StepFrame(
-                self.content_holder,
                 runner=r,
                 initial_quantity=initial_quantity,
                 on_start=lambda s=sid: self.on_start(s),
@@ -218,24 +236,40 @@ class App(ctk.CTk):
                 on_save=lambda s=sid: self.on_save(s),
             )
             self.step_frames[sid] = frame
+            self.stack.addWidget(frame)
 
-        footer = ctk.CTkFrame(outer, fg_color="transparent")
-        footer.pack(fill="x", side="bottom", pady=(12, 0))
+        body.addWidget(self.stack, 1)
+        outer.addLayout(body, 1)
+
+        # Footer
+        footer = QHBoxLayout()
+        footer.setContentsMargins(0, 12, 0, 0)
+        footer.setSpacing(8)
 
         for text, cmd in (
             ("模板", self.open_templates),
             ("設定", self.open_config),
             ("紀錄", self.open_logs),
         ):
-            ctk.CTkButton(
-                footer,
-                text=text,
-                width=100,
-                height=30,
-                fg_color="transparent",
-                border_width=1,
-                command=cmd,
-            ).pack(side="left", padx=(0, 8))
+            btn = QPushButton(text)
+            btn.setFixedSize(100, 30)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: transparent;
+                    color: {COLOR_TEXT};
+                    border: 1px solid {COLOR_BORDER};
+                    border-radius: 4px;
+                }}
+                QPushButton:hover {{
+                    background-color: {COLOR_HOVER};
+                }}
+                """)
+            btn.clicked.connect(cmd)
+            footer.addWidget(btn)
+
+        footer.addStretch(1)
+        outer.addLayout(footer)
 
     def initial_quantity_for(self, step_id: str) -> int:
         conf = self.conf
@@ -247,13 +281,41 @@ class App(ctk.CTk):
             "remove_car": conf.remove_car.quantity,
         }[step_id]
 
+    def update_tab_highlight(self) -> None:
+        for sid, btn in self.step_btns.items():
+            selected = sid == self.current
+            if self.step_btn_selected[sid] != selected:
+                if selected:
+                    btn.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {COLOR_ACCENT};
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            text-align: left;
+                            padding-left: 12px;
+                        }}
+                        """)
+                else:
+                    btn.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: transparent;
+                            color: {COLOR_TEXT};
+                            border: none;
+                            border-radius: 4px;
+                            text-align: left;
+                            padding-left: 12px;
+                        }}
+                        QPushButton:hover {{
+                            background-color: {COLOR_HOVER};
+                        }}
+                        """)
+                self.step_btn_selected[sid] = selected
+
     def show_step(self, step_id: str) -> None:
         self.current = step_id
-        for sid, frame in self.step_frames.items():
-            if sid == step_id:
-                frame.pack(fill="both", expand=True)
-            else:
-                frame.pack_forget()
+        self.stack.setCurrentWidget(self.step_frames[step_id])
+        self.update_tab_highlight()
 
     def on_start(self, step_id: str) -> None:
         running = self.any_running()
@@ -277,15 +339,18 @@ class App(ctk.CTk):
         runner.start(target=target)
 
     def confirm_delete(self, target: int) -> bool:
-        return messagebox.askyesno(
-            title="確認刪除",
-            message=(
+        result = QMessageBox.question(
+            self,
+            "確認刪除",
+            (
                 f"即將從車庫刪除 {target} 輛車。\n"
                 "此操作無法復原。\n\n"
                 "請確認車輛清單頂端是要刪除的目標，確定要繼續嗎?"
             ),
-            parent=self,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
         )
+        return result == QMessageBox.StandardButton.Yes
 
     def on_stop(self, step_id: str) -> None:
         self.runner(step_id).stop()
@@ -322,16 +387,23 @@ class App(ctk.CTk):
         open_in_explorer(cfg.user_templates_dir())
 
     def open_config(self) -> None:
-        SettingsWindow(
+        dlg = SettingsWindow(
             self,
             self.conf,
             on_save=self.apply_settings,
             on_check_update=self.trigger_manual_update_check,
         )
+        dlg.exec()
 
     def apply_settings(self, new_conf: cfg.Config) -> None:
         self.conf = new_conf
-        self.attributes("-topmost", new_conf.general.always_on_top)
+        # 切換置頂旗標需要重新顯示視窗
+        was_visible = self.isVisible()
+        self.setWindowFlag(
+            Qt.WindowType.WindowStaysOnTopHint, new_conf.general.always_on_top
+        )
+        if was_visible:
+            self.show()
         for r in self.runners.values():
             r.conf = new_conf
 
@@ -344,153 +416,211 @@ class App(ctk.CTk):
 
         if any_running:
             label = self.runners[running_id].label
-            self.pill_dot.configure(text_color=COLOR_RUNNING)
-            self.pill_text.configure(text=f"執行中 ({label})", text_color=COLOR_RUNNING)
+            self.pill_dot.setStyleSheet(
+                f"color: {COLOR_RUNNING}; font-size: {FONT_SIZE_TITLE}px;"
+            )
+            self.pill_text.setText(f"執行中 ({label})")
+            self.pill_text.setStyleSheet(
+                f"color: {COLOR_RUNNING}; font-size: {FONT_SIZE_BODY}px;"
+            )
         else:
-            self.pill_dot.configure(text_color=COLOR_IDLE)
-            self.pill_text.configure(text="閒置", text_color=COLOR_MUTED)
+            self.pill_dot.setStyleSheet(
+                f"color: {COLOR_IDLE}; font-size: {FONT_SIZE_TITLE}px;"
+            )
+            self.pill_text.setText("閒置")
+            self.pill_text.setStyleSheet(
+                f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
+            )
 
-        for sid, btn in self.step_btns.items():
-            selected = sid == self.current
-            if self.step_btn_selected[sid] != selected:
-                if selected:
-                    btn.configure(fg_color=COLOR_ACCENT, text_color="white")
-                else:
-                    btn.configure(
-                        fg_color="transparent", text_color=("gray10", "gray90")
-                    )
-                self.step_btn_selected[sid] = selected
+        self.update_tab_highlight()
 
         frame = self.step_frames[self.current]
         other_running = any_running and running_id != self.current
         frame.refresh(disabled_due_to_other=other_running)
 
-        self.after(REFRESH_MS, self.refresh)
 
-
-class StepFrame(ctk.CTkFrame):
+class StepFrame(QWidget):
     def __init__(
         self,
-        parent,
         runner: StepRunner,
         initial_quantity: int,
         on_start,
         on_stop,
         on_save,
     ) -> None:
-        super().__init__(parent, fg_color="transparent")
+        super().__init__()
         self.runner = runner
         self.on_start = on_start
         self.on_stop = on_stop
         self.on_save = on_save
         self.last_btn_state: tuple[bool, bool] | None = None
-        self.message_until: float = 0
+
+        self.message_timer = QTimer(self)
+        self.message_timer.setSingleShot(True)
+        self.message_timer.timeout.connect(self.clear_message)
+
+        # 用 sticky=True 標記目前訊息是錯誤訊息（由 refresh 維持），
+        # 與 set_message 設定的暫時訊息區隔。
+        self.message_sticky = False
 
         self.build_ui()
-        self.qty_var.set(str(initial_quantity))
+        self.qty_edit.setText(str(initial_quantity))
 
     def build_ui(self) -> None:
         runner = self.runner
 
-        ctk.CTkLabel(
-            self,
-            text=runner.label,
-            font=ctk.CTkFont(size=FONT_SIZE_HEADING, weight="bold"),
-            anchor="w",
-        ).pack(fill="x")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
-        qty_row = ctk.CTkFrame(self, fg_color="transparent")
-        qty_row.pack(fill="x", pady=(8, 8))
-        ctk.CTkLabel(
-            qty_row,
-            text=runner.quantity_label,
-            font=ctk.CTkFont(size=FONT_SIZE_BODY),
-        ).pack(side="left")
-
-        self.qty_var = ctk.StringVar(value="1")
-        self.qty_entry = ctk.CTkEntry(
-            qty_row,
-            textvariable=self.qty_var,
-            width=80,
-            justify="right",
+        title = QLabel(runner.label)
+        title.setStyleSheet(
+            f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_HEADING}px; font-weight: bold;"
         )
-        self.qty_entry.pack(side="left", padx=(8, 8))
+        layout.addWidget(title)
 
-        self.toggle_btn = ctk.CTkButton(
-            self,
-            text="開始",
-            height=38,
-            font=ctk.CTkFont(size=FONT_SIZE_BODY, weight="bold"),
-            command=self.handle_toggle,
+        # 數量列
+        qty_row = QHBoxLayout()
+        qty_row.setContentsMargins(0, 8, 0, 8)
+        qty_row.setSpacing(8)
+
+        qty_label = QLabel(runner.quantity_label)
+        qty_label.setStyleSheet(f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_BODY}px;")
+        qty_row.addWidget(qty_label)
+
+        self.qty_edit = QLineEdit()
+        self.qty_edit.setFixedWidth(80)
+        self.qty_edit.setValidator(QIntValidator(1, 99999, self))
+        self.qty_edit.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.qty_edit.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {COLOR_PANEL};
+                color: {COLOR_TEXT};
+                border: 1px solid {COLOR_BORDER};
+                border-radius: 4px;
+                padding: 4px 6px;
+            }}
+            QLineEdit:disabled {{
+                color: {COLOR_MUTED};
+            }}
+            """)
+        qty_row.addWidget(self.qty_edit)
+        qty_row.addStretch(1)
+
+        layout.addLayout(qty_row)
+
+        # 開始/停止按鈕
+        self.toggle_btn = QPushButton("開始")
+        self.toggle_btn.setFixedHeight(38)
+        self.toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.toggle_btn.clicked.connect(self.handle_toggle)
+        self.apply_toggle_default_style()
+        layout.addWidget(self.toggle_btn)
+
+        # 儲存設定列
+        save_row = QHBoxLayout()
+        save_row.setContentsMargins(0, 6, 0, 10)
+        save_row.addStretch(1)
+
+        self.save_btn = QPushButton("儲存設定")
+        self.save_btn.setFixedSize(100, 28)
+        self.save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.save_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                color: {COLOR_TEXT};
+                border: 1px solid {COLOR_BORDER};
+                border-radius: 4px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLOR_HOVER};
+            }}
+            QPushButton:disabled {{
+                color: {COLOR_MUTED};
+            }}
+            """)
+        self.save_btn.clicked.connect(self.handle_save)
+        save_row.addWidget(self.save_btn)
+        layout.addLayout(save_row)
+
+        # 統計面板
+        stats = QFrame()
+        stats.setStyleSheet(
+            f"QFrame {{ background-color: {COLOR_PANEL}; border-radius: 6px; }}"
         )
-        self.toggle_btn.pack(fill="x", pady=(0, 6))
-        self.toggle_default_fg = self.toggle_btn.cget("fg_color")
-        self.toggle_default_hover = self.toggle_btn.cget("hover_color")
+        stats_layout = QGridLayout(stats)
+        stats_layout.setContentsMargins(12, 8, 12, 8)
+        stats_layout.setHorizontalSpacing(8)
+        stats_layout.setVerticalSpacing(4)
+        stats_layout.setColumnStretch(0, 0)
+        stats_layout.setColumnStretch(1, 1)
 
-        save_row = ctk.CTkFrame(self, fg_color="transparent")
-        save_row.pack(fill="x", pady=(0, 10))
-        self.save_btn = ctk.CTkButton(
-            save_row,
-            text="儲存設定",
-            width=100,
-            height=28,
-            fg_color="transparent",
-            border_width=1,
-            command=self.handle_save,
+        self.lbl_progress = self.stat(stats_layout, 0, runner.progress_label, "0 / 0")
+        self.lbl_state = self.stat(stats_layout, 1, "狀態", "—")
+        self.lbl_score = self.stat(stats_layout, 2, "分數", "0.000")
+        self.lbl_threshold = self.stat(stats_layout, 3, "門檻", "0.85")
+        self.lbl_elapsed = self.stat(stats_layout, 4, "耗時", "0:00")
+
+        layout.addWidget(stats)
+
+        # 訊息列
+        self.lbl_message = QLabel("")
+        self.lbl_message.setStyleSheet(
+            f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
         )
-        self.save_btn.pack(side="right")
+        self.lbl_message.setContentsMargins(0, 8, 0, 0)
+        layout.addWidget(self.lbl_message)
 
-        stats = ctk.CTkFrame(self)
-        stats.pack(fill="x", pady=(0, 8))
-        stats.grid_columnconfigure(0, weight=0)
-        stats.grid_columnconfigure(1, weight=1)
+        layout.addStretch(1)
 
-        self.lbl_progress = self.stat(stats, 0, 0, runner.progress_label, "0 / 0")
-        self.lbl_state = self.stat(stats, 1, 0, "狀態", "—")
-        self.lbl_score = self.stat(stats, 2, 0, "分數", "0.000")
-        self.lbl_threshold = self.stat(stats, 3, 0, "門檻", "0.85")
-        self.lbl_elapsed = self.stat(stats, 4, 0, "耗時", "0:00")
+    def apply_toggle_default_style(self) -> None:
+        self.toggle_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_ACCENT};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: #2563eb;
+            }}
+            QPushButton:disabled {{
+                background-color: {COLOR_BORDER};
+                color: {COLOR_MUTED};
+            }}
+            """)
 
-        self.lbl_state_default_color = self.lbl_state.cget("text_color")
+    def apply_toggle_stop_style(self) -> None:
+        self.toggle_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_ERROR};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: {COLOR_DANGER_HOVER};
+            }}
+            """)
 
-        self.lbl_message = ctk.CTkLabel(
-            self,
-            text="",
-            text_color=COLOR_MUTED,
-            anchor="w",
+    def stat(self, grid: QGridLayout, row: int, label: str, value: str) -> QLabel:
+        lbl = QLabel(label)
+        lbl.setStyleSheet(f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;")
+        grid.addWidget(lbl, row, 0, Qt.AlignmentFlag.AlignLeft)
+
+        v = QLabel(value)
+        v.setStyleSheet(
+            f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_BODY}px; font-weight: bold;"
         )
-        self.lbl_message.pack(fill="x", pady=(8, 0))
-
-    def stat(self, parent, row: int, col: int, label: str, value: str) -> ctk.CTkLabel:
-        ctk.CTkLabel(
-            parent,
-            text=label,
-            text_color=COLOR_MUTED,
-            font=ctk.CTkFont(size=FONT_SIZE_BODY),
-        ).grid(
-            row=row,
-            column=col,
-            sticky="w",
-            padx=(12, 8),
-            pady=4,
-        )
-        v = ctk.CTkLabel(
-            parent,
-            text=value,
-            font=ctk.CTkFont(size=FONT_SIZE_BODY, weight="bold"),
-            anchor="w",
-        )
-        v.grid(
-            row=row,
-            column=col + 1,
-            sticky="ew",
-            padx=(0, 12),
-            pady=4,
-        )
+        grid.addWidget(v, row, 1, Qt.AlignmentFlag.AlignLeft)
         return v
 
     def read_quantity(self) -> int | None:
-        raw = self.qty_var.get().strip()
+        raw = self.qty_edit.text().strip()
 
         try:
             target = int(raw)
@@ -513,59 +643,65 @@ class StepFrame(ctk.CTkFrame):
 
         if btn_state != self.last_btn_state:
             if running:
-                self.toggle_btn.configure(
-                    text="停止",
-                    fg_color=COLOR_ERROR,
-                    hover_color="#b91c1c",
-                    state="normal",
-                )
+                self.toggle_btn.setText("停止")
+                self.toggle_btn.setEnabled(True)
+                self.apply_toggle_stop_style()
             else:
-                self.toggle_btn.configure(
-                    text="開始",
-                    fg_color=self.toggle_default_fg,
-                    hover_color=self.toggle_default_hover,
-                    state="disabled" if disabled_due_to_other else "normal",
-                )
+                self.toggle_btn.setText("開始")
+                self.toggle_btn.setEnabled(not disabled_due_to_other)
+                self.apply_toggle_default_style()
 
-            locked = "disabled" if (running or disabled_due_to_other) else "normal"
-
-            self.qty_entry.configure(state=locked)
-
-            self.save_btn.configure(state=locked)
+            locked = running or disabled_due_to_other
+            self.qty_edit.setEnabled(not locked)
+            self.save_btn.setEnabled(not locked)
 
             self.last_btn_state = btn_state
 
-        self.lbl_state.configure(**self.compute_state_display(status))
+        # 狀態顯示
+        state_info = self.compute_state_display(status)
+        self.lbl_state.setText(state_info["text"])
+        self.lbl_state.setStyleSheet(
+            f"color: {state_info['color']}; font-size: {FONT_SIZE_BODY}px; "
+            f"font-weight: bold;"
+        )
 
         from_conf_threshold = runner.conf.match.threshold
 
-        self.lbl_score.configure(
-            text=(
-                f"{status.score:.3f}  ({status.match_name})"
-                if status.match_name
-                else f"{status.score:.3f}"
-            ),
-            text_color=score_color(status.score, from_conf_threshold),
+        score_text = (
+            f"{status.score:.3f}  ({status.match_name})"
+            if status.match_name
+            else f"{status.score:.3f}"
+        )
+        self.lbl_score.setText(score_text)
+        self.lbl_score.setStyleSheet(
+            f"color: {score_color(status.score, from_conf_threshold)}; "
+            f"font-size: {FONT_SIZE_BODY}px; font-weight: bold;"
         )
 
         target_str = str(status.target) if status.target >= 1 else "—"
 
-        self.lbl_progress.configure(text=f"{status.progress} / {target_str}")
-        self.lbl_threshold.configure(text=f"{from_conf_threshold:.2f}")
+        self.lbl_progress.setText(f"{status.progress} / {target_str}")
+        self.lbl_threshold.setText(f"{from_conf_threshold:.2f}")
 
         elapsed = int(status.elapsed_s)
         m, s = divmod(elapsed, 60)
         h, m = divmod(m, 60)
-        self.lbl_elapsed.configure(text=f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}")
+        self.lbl_elapsed.setText(f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}")
 
         if status.last_reason in ERROR_REASONS:
-            self.lbl_message.configure(
-                text=status.message or "",
-                text_color=COLOR_ERROR,
+            self.message_sticky = True
+            self.message_timer.stop()
+            self.lbl_message.setText(status.message or "")
+            self.lbl_message.setStyleSheet(
+                f"color: {COLOR_ERROR}; font-size: {FONT_SIZE_BODY}px;"
             )
-        else:
-            if time.monotonic() >= self.message_until:
-                self.lbl_message.configure(text="", text_color=COLOR_MUTED)
+        elif self.message_sticky:
+            # 從錯誤狀態切回正常，清掉訊息
+            self.message_sticky = False
+            self.lbl_message.setText("")
+            self.lbl_message.setStyleSheet(
+                f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
+            )
 
     def compute_state_display(self, status) -> dict:
         """根據 runner 狀態決定 lbl_state 要顯示什麼字、什麼顏色。"""
@@ -575,22 +711,22 @@ class StepFrame(ctk.CTkFrame):
         if running:
             return {
                 "text": self.runner.get_state_label(status.state),
-                "text_color": self.lbl_state_default_color,
+                "color": COLOR_TEXT,
             }
 
         if reason in ERROR_REASONS:
-            return {"text": "錯誤", "text_color": COLOR_ERROR}
+            return {"text": "錯誤", "color": COLOR_ERROR}
 
         if reason == "target_reached":
-            return {"text": REASON_LABEL[reason], "text_color": COLOR_RUNNING}
+            return {"text": REASON_LABEL[reason], "color": COLOR_RUNNING}
 
         if reason:
             return {
                 "text": REASON_LABEL.get(reason, reason),
-                "text_color": COLOR_MUTED,
+                "color": COLOR_MUTED,
             }
 
-        return {"text": "—", "text_color": self.lbl_state_default_color}
+        return {"text": "—", "color": COLOR_TEXT}
 
     def handle_toggle(self) -> None:
         if self.runner.is_running():
@@ -604,13 +740,65 @@ class StepFrame(ctk.CTkFrame):
     def show_saved(self) -> None:
         self.set_message("設定已儲存。", COLOR_RUNNING)
 
-    def set_message(self, text: str, color: str, duration: float = 3.0) -> None:
-        self.lbl_message.configure(text=text, text_color=color)
-        self.message_until = time.monotonic() + duration
+    def set_message(self, text: str, color: str, duration_ms: int = 3000) -> None:
+        self.message_sticky = False
+        self.lbl_message.setText(text)
+        self.lbl_message.setStyleSheet(
+            f"color: {color}; font-size: {FONT_SIZE_BODY}px;"
+        )
+        self.message_timer.start(duration_ms)
+
+    def clear_message(self) -> None:
+        if self.message_sticky:
+            return
+        self.lbl_message.setText("")
+        self.lbl_message.setStyleSheet(
+            f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
+        )
+
+
+def apply_dark_palette(app: QApplication) -> None:
+    app.setStyle("Fusion")
+
+    palette = QPalette()
+    bg = QColor(COLOR_BG)
+    panel = QColor(COLOR_PANEL)
+    text = QColor(COLOR_TEXT)
+    disabled = QColor(COLOR_MUTED)
+    accent = QColor(COLOR_ACCENT)
+
+    palette.setColor(QPalette.ColorRole.Window, bg)
+    palette.setColor(QPalette.ColorRole.WindowText, text)
+    palette.setColor(QPalette.ColorRole.Base, panel)
+    palette.setColor(QPalette.ColorRole.AlternateBase, bg)
+    palette.setColor(QPalette.ColorRole.ToolTipBase, panel)
+    palette.setColor(QPalette.ColorRole.ToolTipText, text)
+    palette.setColor(QPalette.ColorRole.Text, text)
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, disabled)
+    palette.setColor(QPalette.ColorRole.Button, panel)
+    palette.setColor(QPalette.ColorRole.ButtonText, text)
+    palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, disabled
+    )
+    palette.setColor(QPalette.ColorRole.Highlight, accent)
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor("white"))
+    palette.setColor(QPalette.ColorRole.Link, accent)
+
+    app.setPalette(palette)
 
 
 def run() -> None:
     log_path = cfg.logs_dir() / "fh6-automation.log"
     logger.add(str(log_path), rotation="2 MB", retention=5, enqueue=True)
     logger.info("Launching FH6 Automation (python {})", sys.version.split()[0])
-    App().mainloop()
+
+    # 避免 Qt 嘗試重複設定 DPI awareness 時輸出警告（已由系統或其他模組設定）。
+    os.environ.setdefault("QT_LOGGING_RULES", "qt.qpa.window=false")
+
+    qt_app = QApplication.instance() or QApplication(sys.argv)
+    apply_dark_palette(qt_app)  # type: ignore[arg-type]
+
+    window = App()
+    window.show()
+
+    sys.exit(qt_app.exec())

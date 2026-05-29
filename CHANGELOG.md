@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### 調整
+
+- GUI 框架從 customtkinter 遷移至 PySide6，外觀改為原生深色主題，HiDPI 支援更完善。
+- 更新對話框的 release notes 改用 Qt 原生 Markdown 渲染，支援完整語法（表格、圖片等）。
+
+### 破壞性變更
+
+- GUI 框架從 customtkinter 換為 PySide6。開發環境需重新執行 `uv sync` 安裝新依賴。對終端使用者無影響（installer 不變）。
+
 ## v0.3.0
 
 ### 新增

@@ -6,13 +6,13 @@ license = "AGPL-3.0-or-later"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "bettercam>=1.0",
-  "customtkinter>=5.2",
   "loguru>=0.7",
   "mss>=10.0",
   "numpy>=2.0",
   "opencv-python>=4.10",
   "pydirectinput-rgx>=2.1",
   "pygetwindow>=0.0.9",
+  "pyside6>=6.7",
   "pywin32>=306",
 ]
 

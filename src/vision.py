@@ -56,9 +56,7 @@ def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray
             logger.warning("Missing template: {}", name)
             continue
 
-        img = cv2.imdecode(
-            np.fromfile(str(path), dtype=np.uint8), cv2.IMREAD_GRAYSCALE
-        )
+        img = cv2.imdecode(np.fromfile(str(path), dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
 
         if img is None:
             logger.warning("Failed to read template: {}", path)
