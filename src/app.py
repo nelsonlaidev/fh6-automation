@@ -95,7 +95,8 @@ class App(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("FH6 自動化")
-        self.setFixedSize(680, 520)
+        self.setMinimumSize(680, 520)
+        self.resize(680, 520)
 
         self.conf = cfg.load()
         if self.conf.general.always_on_top:
