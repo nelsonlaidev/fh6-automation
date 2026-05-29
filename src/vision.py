@@ -31,6 +31,9 @@ def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray
     ratio = 視窗中可放下 16:9 參考解析度的最大縮放比，
     等於 min(width / reference_width, height / reference_height)。
     這樣在 16:10 / 21:9 等非 16:9 視窗也能算出正確的 UI 大小。
+
+    使用者覆寫的模板（user_templates_dir）視為已在當前解析度截圖，
+    一律用 ratio=1.0 載入；只有 bundled 模板會套用 ratio 縮放。
     """
     bundled = bundled_templates_dir()
     user = config.user_templates_dir()
@@ -41,7 +44,13 @@ def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray
         user_path = user / filename
         bundled_path = bundled / filename
 
-        path = user_path if user_path.exists() else bundled_path
+        if user_path.exists():
+            path = user_path
+            effective_ratio = 1.0
+            logger.info("Using user template (no scaling): {}", name)
+        else:
+            path = bundled_path
+            effective_ratio = ratio
 
         if not path.exists():
             logger.warning("Missing template: {}", name)
@@ -55,11 +64,14 @@ def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray
             logger.warning("Failed to read template: {}", path)
             continue
 
-        if ratio != 1.0 and ratio > 0:
+        if effective_ratio != 1.0 and effective_ratio > 0:
             height, width = img.shape[:2]
             img = cv2.resize(
                 img,
-                (max(1, int(round(width * ratio))), max(1, int(round(height * ratio)))),
+                (
+                    max(1, int(round(width * effective_ratio))),
+                    max(1, int(round(height * effective_ratio))),
+                ),
                 interpolation=cv2.INTER_AREA,
             )
 
