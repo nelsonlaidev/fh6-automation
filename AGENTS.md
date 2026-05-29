@@ -32,3 +32,4 @@
 ## Git 規則
 
 - 永遠不要自行 commit 或 push，必須等使用者明確指示。
+- 修改 `pyproject.toml` 後，必須執行 `uv sync` 更新 lockfile，再一起 commit。
