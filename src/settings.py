@@ -45,10 +45,6 @@ class SettingsWindow(QDialog):
         # 視窗置頂，避免被遊戲視窗遮蓋。
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
-        if parent is not None:
-            # 將設定視窗對齊主視窗左上角。
-            self.move(parent.x(), parent.y())
-
         self.conf = conf
         self.on_save = on_save
         self.on_check_update = on_check_update
