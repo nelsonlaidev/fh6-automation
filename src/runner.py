@@ -132,6 +132,8 @@ class StepRunner:
             self.finish(StopReason.NO_WINDOW, "找不到 Forza 視窗")
             return
 
+        window.check_elevation_mismatch(win)
+
         rect = window.client_rect(win)
         # 模板以 16:9 解析度製作（如 3840x2160），但遊戲視窗可能是 16:10、21:9
         # 等其他比例。Forza 會在視窗內以 letterbox / pillarbox 方式渲染 16:9

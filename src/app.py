@@ -32,6 +32,7 @@ from steps.farm_sp import FarmSPRunner
 from steps.remove_car import RemoveCarRunner
 from steps.upgrade_car import UpgradeCarRunner
 import updater
+import window as window_mod
 
 REFRESH_MS = 200
 
@@ -780,12 +781,13 @@ def run() -> None:
     log_path = cfg.logs_dir() / "fh6-automation.log"
     logger.add(str(log_path), format=log_fmt, rotation="2 MB", retention=5, enqueue=True)
     logger.info(
-        "啟動 FH6 Automation v{} | Python {} | {} {} | 螢幕 {}",
+        "啟動 FH6 Automation v{} | Python {} | {} {} | 螢幕 {} | 管理員={}",
         __version__,
         sys.version.split()[0],
         platform.system(),
         platform.version(),
         _screen_size(),
+        window_mod.is_self_elevated(),
     )
     logger.debug("設定：{}", cfg.load())
 
