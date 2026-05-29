@@ -34,9 +34,7 @@ class SettingsWindow(QDialog):
         parent,
         conf: cfg.Config,
         on_save=None,
-        on_check_update: (
-            Callable[[Callable[[updater.CheckResult], None]], None] | None
-        ) = None,
+        on_check_update: Callable[[Callable[[updater.CheckResult], None]], None] | None = None,
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("設定")
@@ -74,9 +72,7 @@ class SettingsWindow(QDialog):
 
         # 一般
         self.section("一般")
-        self.var_dry_run = self.checkbox(
-            "Dry Run（不實際執行消耗操作）", conf.general.dry_run
-        )
+        self.var_dry_run = self.checkbox("Dry Run（不實際執行消耗操作）", conf.general.dry_run)
         self.var_always_on_top = self.checkbox("視窗置頂", conf.general.always_on_top)
         self.var_auto_update = self.checkbox("啟動時檢查更新", conf.general.auto_update)
 
@@ -116,27 +112,19 @@ class SettingsWindow(QDialog):
 
         # 擷取
         self.section("擷取")
-        self.var_backend = self.dropdown(
-            "Backend", conf.capture.backend, ["auto", "bettercam", "mss"]
-        )
+        self.var_backend = self.dropdown("Backend", conf.capture.backend, ["auto", "bettercam", "mss"])
         self.var_fps = self.entry("FPS", conf.capture.fps)
 
         # 比對
         self.section("比對")
         self.var_threshold = self.entry("門檻 (threshold)", conf.match.threshold)
-        self.var_stale_timeout = self.entry(
-            "未辨識逾時 (ms)", conf.match.stale_timeout_ms
-        )
-        self.var_stuck_timeout = self.entry(
-            "卡住逾時 (ms)", conf.match.stuck_timeout_ms
-        )
+        self.var_stale_timeout = self.entry("未辨識逾時 (ms)", conf.match.stale_timeout_ms)
+        self.var_stuck_timeout = self.entry("卡住逾時 (ms)", conf.match.stuck_timeout_ms)
 
         # 輸入
         self.section("輸入")
         self.var_press_hold = self.entry("按鍵持續 (ms)", conf.input.press_hold_ms)
-        self.var_between_press = self.entry(
-            "按鍵間隔 (ms)", conf.input.between_press_ms
-        )
+        self.var_between_press = self.entry("按鍵間隔 (ms)", conf.input.between_press_ms)
         self.var_jitter = self.entry("抖動 (ms)", conf.input.jitter_ms)
 
         # 底部按鈕列

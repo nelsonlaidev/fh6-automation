@@ -176,22 +176,16 @@ class App(QMainWindow):
         header.setContentsMargins(0, 0, 0, 0)
 
         title = QLabel("超級轉盤刷取")
-        title.setStyleSheet(
-            f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_TITLE}px; font-weight: bold;"
-        )
+        title.setStyleSheet(f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_TITLE}px; font-weight: bold;")
         header.addWidget(title)
         header.addStretch(1)
 
         self.pill_dot = QLabel("●")
-        self.pill_dot.setStyleSheet(
-            f"color: {COLOR_IDLE}; font-size: {FONT_SIZE_TITLE}px;"
-        )
+        self.pill_dot.setStyleSheet(f"color: {COLOR_IDLE}; font-size: {FONT_SIZE_TITLE}px;")
         header.addWidget(self.pill_dot)
 
         self.pill_text = QLabel("閒置")
-        self.pill_text.setStyleSheet(
-            f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
-        )
+        self.pill_text.setStyleSheet(f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;")
         self.pill_text.setContentsMargins(4, 0, 0, 0)
         header.addWidget(self.pill_text)
 
@@ -203,9 +197,7 @@ class App(QMainWindow):
         body.setSpacing(12)
 
         sidebar = QFrame()
-        sidebar.setStyleSheet(
-            f"QFrame {{ background-color: {COLOR_PANEL}; border-radius: 6px; }}"
-        )
+        sidebar.setStyleSheet(f"QFrame {{ background-color: {COLOR_PANEL}; border-radius: 6px; }}")
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(6, 6, 6, 6)
         sidebar_layout.setSpacing(3)
@@ -254,7 +246,8 @@ class App(QMainWindow):
             btn = QPushButton(text)
             btn.setFixedSize(100, 30)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setStyleSheet(f"""
+            btn.setStyleSheet(
+                f"""
                 QPushButton {{
                     background-color: transparent;
                     color: {COLOR_TEXT};
@@ -264,7 +257,8 @@ class App(QMainWindow):
                 QPushButton:hover {{
                     background-color: {COLOR_HOVER};
                 }}
-                """)
+                """
+            )
             btn.clicked.connect(cmd)
             footer.addWidget(btn)
 
@@ -286,7 +280,8 @@ class App(QMainWindow):
             selected = sid == self.current
             if self.step_btn_selected[sid] != selected:
                 if selected:
-                    btn.setStyleSheet(f"""
+                    btn.setStyleSheet(
+                        f"""
                         QPushButton {{
                             background-color: {COLOR_ACCENT};
                             color: white;
@@ -295,9 +290,11 @@ class App(QMainWindow):
                             text-align: left;
                             padding-left: 12px;
                         }}
-                        """)
+                        """
+                    )
                 else:
-                    btn.setStyleSheet(f"""
+                    btn.setStyleSheet(
+                        f"""
                         QPushButton {{
                             background-color: transparent;
                             color: {COLOR_TEXT};
@@ -309,7 +306,8 @@ class App(QMainWindow):
                         QPushButton:hover {{
                             background-color: {COLOR_HOVER};
                         }}
-                        """)
+                        """
+                    )
                 self.step_btn_selected[sid] = selected
 
     def show_step(self, step_id: str) -> None:
@@ -399,9 +397,7 @@ class App(QMainWindow):
         self.conf = new_conf
         # 切換置頂旗標需要重新顯示視窗
         was_visible = self.isVisible()
-        self.setWindowFlag(
-            Qt.WindowType.WindowStaysOnTopHint, new_conf.general.always_on_top
-        )
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, new_conf.general.always_on_top)
         if was_visible:
             self.show()
         for r in self.runners.values():
@@ -416,21 +412,13 @@ class App(QMainWindow):
 
         if any_running:
             label = self.runners[running_id].label
-            self.pill_dot.setStyleSheet(
-                f"color: {COLOR_RUNNING}; font-size: {FONT_SIZE_TITLE}px;"
-            )
+            self.pill_dot.setStyleSheet(f"color: {COLOR_RUNNING}; font-size: {FONT_SIZE_TITLE}px;")
             self.pill_text.setText(f"執行中 ({label})")
-            self.pill_text.setStyleSheet(
-                f"color: {COLOR_RUNNING}; font-size: {FONT_SIZE_BODY}px;"
-            )
+            self.pill_text.setStyleSheet(f"color: {COLOR_RUNNING}; font-size: {FONT_SIZE_BODY}px;")
         else:
-            self.pill_dot.setStyleSheet(
-                f"color: {COLOR_IDLE}; font-size: {FONT_SIZE_TITLE}px;"
-            )
+            self.pill_dot.setStyleSheet(f"color: {COLOR_IDLE}; font-size: {FONT_SIZE_TITLE}px;")
             self.pill_text.setText("閒置")
-            self.pill_text.setStyleSheet(
-                f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
-            )
+            self.pill_text.setStyleSheet(f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;")
 
         self.update_tab_highlight()
 
@@ -474,9 +462,7 @@ class StepFrame(QWidget):
         layout.setSpacing(0)
 
         title = QLabel(runner.label)
-        title.setStyleSheet(
-            f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_HEADING}px; font-weight: bold;"
-        )
+        title.setStyleSheet(f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_HEADING}px; font-weight: bold;")
         layout.addWidget(title)
 
         # 數量列
@@ -492,7 +478,8 @@ class StepFrame(QWidget):
         self.qty_edit.setFixedWidth(80)
         self.qty_edit.setValidator(QIntValidator(1, 99999, self))
         self.qty_edit.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.qty_edit.setStyleSheet(f"""
+        self.qty_edit.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLOR_PANEL};
                 color: {COLOR_TEXT};
@@ -503,7 +490,8 @@ class StepFrame(QWidget):
             QLineEdit:disabled {{
                 color: {COLOR_MUTED};
             }}
-            """)
+            """
+        )
         qty_row.addWidget(self.qty_edit)
         qty_row.addStretch(1)
 
@@ -525,7 +513,8 @@ class StepFrame(QWidget):
         self.save_btn = QPushButton("儲存設定")
         self.save_btn.setFixedSize(100, 28)
         self.save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.save_btn.setStyleSheet(f"""
+        self.save_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: transparent;
                 color: {COLOR_TEXT};
@@ -538,16 +527,15 @@ class StepFrame(QWidget):
             QPushButton:disabled {{
                 color: {COLOR_MUTED};
             }}
-            """)
+            """
+        )
         self.save_btn.clicked.connect(self.handle_save)
         save_row.addWidget(self.save_btn)
         layout.addLayout(save_row)
 
         # 統計面板
         stats = QFrame()
-        stats.setStyleSheet(
-            f"QFrame {{ background-color: {COLOR_PANEL}; border-radius: 6px; }}"
-        )
+        stats.setStyleSheet(f"QFrame {{ background-color: {COLOR_PANEL}; border-radius: 6px; }}")
         stats_layout = QGridLayout(stats)
         stats_layout.setContentsMargins(12, 8, 12, 8)
         stats_layout.setHorizontalSpacing(8)
@@ -565,16 +553,15 @@ class StepFrame(QWidget):
 
         # 訊息列
         self.lbl_message = QLabel("")
-        self.lbl_message.setStyleSheet(
-            f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
-        )
+        self.lbl_message.setStyleSheet(f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;")
         self.lbl_message.setContentsMargins(0, 8, 0, 0)
         layout.addWidget(self.lbl_message)
 
         layout.addStretch(1)
 
     def apply_toggle_default_style(self) -> None:
-        self.toggle_btn.setStyleSheet(f"""
+        self.toggle_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLOR_ACCENT};
                 color: white;
@@ -590,10 +577,12 @@ class StepFrame(QWidget):
                 background-color: {COLOR_BORDER};
                 color: {COLOR_MUTED};
             }}
-            """)
+            """
+        )
 
     def apply_toggle_stop_style(self) -> None:
-        self.toggle_btn.setStyleSheet(f"""
+        self.toggle_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLOR_ERROR};
                 color: white;
@@ -605,7 +594,8 @@ class StepFrame(QWidget):
             QPushButton:hover {{
                 background-color: {COLOR_DANGER_HOVER};
             }}
-            """)
+            """
+        )
 
     def stat(self, grid: QGridLayout, row: int, label: str, value: str) -> QLabel:
         lbl = QLabel(label)
@@ -613,9 +603,7 @@ class StepFrame(QWidget):
         grid.addWidget(lbl, row, 0, Qt.AlignmentFlag.AlignLeft)
 
         v = QLabel(value)
-        v.setStyleSheet(
-            f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_BODY}px; font-weight: bold;"
-        )
+        v.setStyleSheet(f"color: {COLOR_TEXT}; font-size: {FONT_SIZE_BODY}px; font-weight: bold;")
         grid.addWidget(v, row, 1, Qt.AlignmentFlag.AlignLeft)
         return v
 
@@ -661,17 +649,12 @@ class StepFrame(QWidget):
         state_info = self.compute_state_display(status)
         self.lbl_state.setText(state_info["text"])
         self.lbl_state.setStyleSheet(
-            f"color: {state_info['color']}; font-size: {FONT_SIZE_BODY}px; "
-            f"font-weight: bold;"
+            f"color: {state_info['color']}; font-size: {FONT_SIZE_BODY}px; " f"font-weight: bold;"
         )
 
         from_conf_threshold = runner.conf.match.threshold
 
-        score_text = (
-            f"{status.score:.3f}  ({status.match_name})"
-            if status.match_name
-            else f"{status.score:.3f}"
-        )
+        score_text = f"{status.score:.3f}  ({status.match_name})" if status.match_name else f"{status.score:.3f}"
         self.lbl_score.setText(score_text)
         self.lbl_score.setStyleSheet(
             f"color: {score_color(status.score, from_conf_threshold)}; "
@@ -692,16 +675,12 @@ class StepFrame(QWidget):
             self.message_sticky = True
             self.message_timer.stop()
             self.lbl_message.setText(status.message or "")
-            self.lbl_message.setStyleSheet(
-                f"color: {COLOR_ERROR}; font-size: {FONT_SIZE_BODY}px;"
-            )
+            self.lbl_message.setStyleSheet(f"color: {COLOR_ERROR}; font-size: {FONT_SIZE_BODY}px;")
         elif self.message_sticky:
             # 從錯誤狀態切回正常，清掉訊息
             self.message_sticky = False
             self.lbl_message.setText("")
-            self.lbl_message.setStyleSheet(
-                f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
-            )
+            self.lbl_message.setStyleSheet(f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;")
 
     def compute_state_display(self, status) -> dict:
         """根據 runner 狀態決定 lbl_state 要顯示什麼字、什麼顏色。"""
@@ -743,18 +722,14 @@ class StepFrame(QWidget):
     def set_message(self, text: str, color: str, duration_ms: int = 3000) -> None:
         self.message_sticky = False
         self.lbl_message.setText(text)
-        self.lbl_message.setStyleSheet(
-            f"color: {color}; font-size: {FONT_SIZE_BODY}px;"
-        )
+        self.lbl_message.setStyleSheet(f"color: {color}; font-size: {FONT_SIZE_BODY}px;")
         self.message_timer.start(duration_ms)
 
     def clear_message(self) -> None:
         if self.message_sticky:
             return
         self.lbl_message.setText("")
-        self.lbl_message.setStyleSheet(
-            f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;"
-        )
+        self.lbl_message.setStyleSheet(f"color: {COLOR_MUTED}; font-size: {FONT_SIZE_BODY}px;")
 
 
 def apply_dark_palette(app: QApplication) -> None:
@@ -777,9 +752,7 @@ def apply_dark_palette(app: QApplication) -> None:
     palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, disabled)
     palette.setColor(QPalette.ColorRole.Button, panel)
     palette.setColor(QPalette.ColorRole.ButtonText, text)
-    palette.setColor(
-        QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, disabled
-    )
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, disabled)
     palette.setColor(QPalette.ColorRole.Highlight, accent)
     palette.setColor(QPalette.ColorRole.HighlightedText, QColor("white"))
     palette.setColor(QPalette.ColorRole.Link, accent)
@@ -803,14 +776,9 @@ def run() -> None:
     from version import __version__
 
     logger.remove()
-    log_fmt = (
-        "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level:<7} | "
-        "{thread.name}:{module}:{line} | {message}"
-    )
+    log_fmt = "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level:<7} | " "{thread.name}:{module}:{line} | {message}"
     log_path = cfg.logs_dir() / "fh6-automation.log"
-    logger.add(
-        str(log_path), format=log_fmt, rotation="2 MB", retention=5, enqueue=True
-    )
+    logger.add(str(log_path), format=log_fmt, rotation="2 MB", retention=5, enqueue=True)
     logger.info(
         "啟動 FH6 Automation v{} | Python {} | {} {} | 螢幕 {}",
         __version__,

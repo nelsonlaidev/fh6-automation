@@ -77,9 +77,7 @@ class RemoveCarRunner(StepRunner):
                 self.tap("down")
 
             self.update(state="checking_remove")
-            if not self.wait_for_template(
-                "remove_car_button", REMOVE_BUTTON_TIMEOUT_MS
-            ):
+            if not self.wait_for_template("remove_car_button", REMOVE_BUTTON_TIMEOUT_MS):
                 self.fail_or_stop(
                     StopReason.STALE,
                     "未停在「從車庫移除車輛」上，流程中止",
@@ -97,9 +95,7 @@ class RemoveCarRunner(StepRunner):
 
             self.tap("down")
 
-            if not self.wait_for_template(
-                "remove_car_confirm", CONFIRM_DIALOG_TIMEOUT_MS
-            ):
+            if not self.wait_for_template("remove_car_confirm", CONFIRM_DIALOG_TIMEOUT_MS):
                 self.fail_or_stop(
                     StopReason.STALE,
                     "未偵測到刪除確認對話框，流程中止",

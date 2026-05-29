@@ -86,9 +86,7 @@ class StepRunner:
         with self.lock:
             self.status = Status(running=True, target=self.target)
 
-        self.thread = threading.Thread(
-            target=self.run_safe, name=f"step-{self.name}", daemon=True
-        )
+        self.thread = threading.Thread(target=self.run_safe, name=f"step-{self.name}", daemon=True)
 
         self.thread.start()
 

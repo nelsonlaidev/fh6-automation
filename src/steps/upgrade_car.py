@@ -103,9 +103,7 @@ class UpgradeCarRunner(StepRunner):
 
             self.update(state="exit_forzavista")
 
-            seen = self.wait_for_any(
-                ["upgrade_car_explode", "upgrade_car_my_cars"], FORZAVISTA_TIMEOUT_MS
-            )
+            seen = self.wait_for_any(["upgrade_car_explode", "upgrade_car_my_cars"], FORZAVISTA_TIMEOUT_MS)
 
             if seen is None:
                 self.fail_or_stop(StopReason.STALE, "未看到 展開 / 我的車輛")
@@ -114,9 +112,7 @@ class UpgradeCarRunner(StepRunner):
             if seen == "upgrade_car_explode":
                 self.tap("escape")
 
-                if not self.wait_for_template(
-                    "upgrade_car_my_cars", DEFAULT_TIMEOUT_MS
-                ):
+                if not self.wait_for_template("upgrade_car_my_cars", DEFAULT_TIMEOUT_MS):
                     self.fail_or_stop(StopReason.STALE, "未看到 我的車輛")
                     return
 
@@ -160,9 +156,7 @@ class UpgradeCarRunner(StepRunner):
             self.update(state="spin_animation")
 
             if not self.conf.general.dry_run:
-                if not self.wait_for_template(
-                    "upgrade_car_wheelspin_unlocked", ANIMATION_TIMEOUT_MS
-                ):
+                if not self.wait_for_template("upgrade_car_wheelspin_unlocked", ANIMATION_TIMEOUT_MS):
                     self.fail_or_stop(StopReason.STALE, "未看到 wheelspin_unlocked")
                     return
 
@@ -306,9 +300,7 @@ class UpgradeCarRunner(StepRunner):
             self.update(score=best_score, match_name=best_name)
 
             if best_score >= conf.match.threshold:
-                logger.debug(
-                    "upgrade_car: 比對到 {} (分數={:.2f})", best_name, best_score
-                )
+                logger.debug("upgrade_car: 比對到 {} (分數={:.2f})", best_name, best_score)
                 return best_name
 
             if self.sleep_remaining(tick_start, period):

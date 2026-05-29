@@ -102,9 +102,7 @@ class BuyCarRunner(StepRunner):
                 )
                 stale_for = (now - last_recognized_at) * 1000
                 if stale_for >= conf.match.stale_timeout_ms:
-                    self.finish(
-                        StopReason.STALE, f"{int(stale_for)} ms 內未辨識到任何介面"
-                    )
+                    self.finish(StopReason.STALE, f"{int(stale_for)} ms 內未辨識到任何介面")
                     return
                 self.sleep_remaining(tick_start, period)
                 continue

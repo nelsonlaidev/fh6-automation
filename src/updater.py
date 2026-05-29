@@ -169,9 +169,7 @@ class Download:
         self.poster.posted.connect(lambda fn: fn())
 
     def start(self) -> None:
-        self.thread = threading.Thread(
-            target=self.run, name="updater-download", daemon=True
-        )
+        self.thread = threading.Thread(target=self.run, name="updater-download", daemon=True)
         self.thread.start()
 
     def cancel(self) -> None:
@@ -229,8 +227,7 @@ def launch_installer_and_quit(parent, installer_path: str) -> None:
         subprocess.Popen(
             [installer_path, "/VERYSILENT", "/SUPPRESSMSGBOXES"],
             close_fds=True,
-            creationflags=subprocess.DETACHED_PROCESS
-            | subprocess.CREATE_NEW_PROCESS_GROUP,
+            creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
         )
         logger.info("updater: 已啟動靜默安裝程式：{}", installer_path)
     except OSError as e:

@@ -14,9 +14,7 @@ def get_documents_dir() -> Path:
 
         buf = ctypes.create_unicode_buffer(wintypes.MAX_PATH)
         # 第二參數須為 c_int,直接傳 Python int 即可。
-        res = ctypes.windll.shell32.SHGetFolderPathW(
-            None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf
-        )
+        res = ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
         if res == 0 and buf.value:
             return Path(buf.value)
     except Exception:
@@ -188,78 +186,48 @@ def load() -> Config:
 
     return Config(
         general=GeneralCfg(
-            dry_run=parser.getboolean(
-                "general", "dry_run", fallback=defaults.general.dry_run
-            ),
-            always_on_top=parser.getboolean(
-                "general", "always_on_top", fallback=defaults.general.always_on_top
-            ),
-            auto_update=parser.getboolean(
-                "general", "auto_update", fallback=defaults.general.auto_update
-            ),
-            skipped_version=parser.get(
-                "general", "skipped_version", fallback=defaults.general.skipped_version
-            ),
+            dry_run=parser.getboolean("general", "dry_run", fallback=defaults.general.dry_run),
+            always_on_top=parser.getboolean("general", "always_on_top", fallback=defaults.general.always_on_top),
+            auto_update=parser.getboolean("general", "auto_update", fallback=defaults.general.auto_update),
+            skipped_version=parser.get("general", "skipped_version", fallback=defaults.general.skipped_version),
         ),
         capture=CaptureCfg(
             backend=parser.get("capture", "backend", fallback=defaults.capture.backend),
             fps=parser.getint("capture", "fps", fallback=defaults.capture.fps),
         ),
         match=MatchCfg(
-            threshold=parser.getfloat(
-                "match", "threshold", fallback=defaults.match.threshold
-            ),
-            stale_timeout_ms=parser.getint(
-                "match", "stale_timeout_ms", fallback=defaults.match.stale_timeout_ms
-            ),
-            stuck_timeout_ms=parser.getint(
-                "match", "stuck_timeout_ms", fallback=defaults.match.stuck_timeout_ms
-            ),
-            reference_height=parser.getint(
-                "match", "reference_height", fallback=defaults.match.reference_height
-            ),
+            threshold=parser.getfloat("match", "threshold", fallback=defaults.match.threshold),
+            stale_timeout_ms=parser.getint("match", "stale_timeout_ms", fallback=defaults.match.stale_timeout_ms),
+            stuck_timeout_ms=parser.getint("match", "stuck_timeout_ms", fallback=defaults.match.stuck_timeout_ms),
+            reference_height=parser.getint("match", "reference_height", fallback=defaults.match.reference_height),
         ),
         input=InputCfg(
-            press_hold_ms=parser.getint(
-                "input", "press_hold_ms", fallback=defaults.input.press_hold_ms
-            ),
-            between_press_ms=parser.getint(
-                "input", "between_press_ms", fallback=defaults.input.between_press_ms
-            ),
-            jitter_ms=parser.getint(
-                "input", "jitter_ms", fallback=defaults.input.jitter_ms
-            ),
+            press_hold_ms=parser.getint("input", "press_hold_ms", fallback=defaults.input.press_hold_ms),
+            between_press_ms=parser.getint("input", "between_press_ms", fallback=defaults.input.between_press_ms),
+            jitter_ms=parser.getint("input", "jitter_ms", fallback=defaults.input.jitter_ms),
         ),
         farm_sp=FarmSPCfg(
             target_runs=max(
                 1,
-                parser.getint(
-                    "farm_sp", "target_runs", fallback=defaults.farm_sp.target_runs
-                ),
+                parser.getint("farm_sp", "target_runs", fallback=defaults.farm_sp.target_runs),
             ),
         ),
         buy_car=BuyCarCfg(
             quantity=max(
                 1,
-                parser.getint(
-                    "buy_car", "quantity", fallback=defaults.buy_car.quantity
-                ),
+                parser.getint("buy_car", "quantity", fallback=defaults.buy_car.quantity),
             ),
         ),
         upgrade_car=UpgradeCarCfg(
             quantity=max(
                 1,
-                parser.getint(
-                    "upgrade_car", "quantity", fallback=defaults.upgrade_car.quantity
-                ),
+                parser.getint("upgrade_car", "quantity", fallback=defaults.upgrade_car.quantity),
             ),
         ),
         remove_car=RemoveCarCfg(
             quantity=max(
                 1,
-                parser.getint(
-                    "remove_car", "quantity", fallback=defaults.remove_car.quantity
-                ),
+                parser.getint("remove_car", "quantity", fallback=defaults.remove_car.quantity),
             ),
         ),
     )
