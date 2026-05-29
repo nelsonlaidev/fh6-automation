@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["black>=25.1", "pre-commit>=4.0", "pyinstaller>=6.10"]
+dev = ["black>=25.1", "pre-commit>=4.0", "pyinstaller>=6.10", "pytest>=8.0"]
 
 [tool.uv]
 package = false
@@ -25,3 +25,6 @@ package = false
 [tool.black]
 line-length = 120
 target-version = ["py312"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
