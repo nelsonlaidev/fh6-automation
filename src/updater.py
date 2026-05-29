@@ -11,7 +11,6 @@ import json
 import os
 import re
 import subprocess
-import sys
 import tempfile
 import threading
 import webbrowser
@@ -227,16 +226,11 @@ def launch_installer_and_quit(parent, installer_path: str) -> None:
     """啟動 silent installer 然後關閉 app，installer 會自動重啟新版本。"""
     try:
         # 用 detached process 確保 app 退出後 installer 仍能跑
-        flags = 0
-        creationflags = 0
-        if sys.platform == "win32":
-            creationflags = (
-                subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
-            )
         subprocess.Popen(
             [installer_path, "/VERYSILENT", "/SUPPRESSMSGBOXES"],
             close_fds=True,
-            creationflags=creationflags,
+            creationflags=subprocess.DETACHED_PROCESS
+            | subprocess.CREATE_NEW_PROCESS_GROUP,
         )
         logger.info("Launched silent installer: {}", installer_path)
     except OSError as e:
