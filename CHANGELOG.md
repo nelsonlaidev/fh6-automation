@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### 修正
+
+- 修復部分電腦上啟動時出現「No module named 'win32api'」的錯誤。
+
 ## v0.5.0
 
 ### 新增
