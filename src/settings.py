@@ -2,6 +2,7 @@
 
 from typing import Callable
 
+import pydirectinput as pdi
 from loguru import logger
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -127,6 +128,12 @@ class SettingsWindow(QDialog):
         self.var_between_press = self.entry("按鍵間隔 (ms)", conf.input.between_press_ms)
         self.var_jitter = self.entry("抖動 (ms)", conf.input.jitter_ms)
 
+        # 刷技能點
+        self.section("刷技能點")
+        self.var_accel_key = self.entry("加速按鍵", conf.farm_sp.acceleration_key)
+        self.var_accel_key.setToolTip("例如：w、space、up")
+        self.var_accel_key.setPlaceholderText("w")
+
         # 底部按鈕列
         btn_row = QWidget()
         btn_layout = QHBoxLayout(btn_row)
@@ -204,6 +211,11 @@ class SettingsWindow(QDialog):
 
     def save(self) -> None:
         try:
+            accel_key = self.var_accel_key.text().strip() or "w"
+            if not pdi.isValidKey(accel_key):
+                QMessageBox.critical(self, "儲存失敗", f"無效的按鍵名稱：{accel_key}")
+                return
+
             conf = cfg.Config(
                 general=cfg.GeneralCfg(
                     dry_run=self.var_dry_run.isChecked(),
@@ -226,7 +238,10 @@ class SettingsWindow(QDialog):
                     between_press_ms=int(self.var_between_press.text()),
                     jitter_ms=int(self.var_jitter.text()),
                 ),
-                farm_sp=self.conf.farm_sp,
+                farm_sp=cfg.FarmSPCfg(
+                    target_runs=self.conf.farm_sp.target_runs,
+                    acceleration_key=accel_key,
+                ),
                 buy_car=self.conf.buy_car,
                 upgrade_car=self.conf.upgrade_car,
                 remove_car=self.conf.remove_car,

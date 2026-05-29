@@ -76,6 +76,7 @@ class InputCfg:
 @dataclass
 class FarmSPCfg:
     target_runs: int = 50
+    acceleration_key: str = "w"
 
 
 @dataclass
@@ -150,6 +151,8 @@ jitter_ms = {defaults.input.jitter_ms}
 [farm_sp]
 ; 要刷幾次，必須 >= 1。
 target_runs = {defaults.farm_sp.target_runs}
+; 加速按鍵（預設 w）。
+acceleration_key = {defaults.farm_sp.acceleration_key}
 
 [buy_car]
 ; 要買幾輛，必須 >= 1。
@@ -211,6 +214,7 @@ def load() -> Config:
                 1,
                 parser.getint("farm_sp", "target_runs", fallback=defaults.farm_sp.target_runs),
             ),
+            acceleration_key=parser.get("farm_sp", "acceleration_key", fallback=defaults.farm_sp.acceleration_key),
         ),
         buy_car=BuyCarCfg(
             quantity=max(
@@ -258,6 +262,7 @@ def save(conf: Config) -> None:
     }
     parser["farm_sp"] = {
         "target_runs": str(conf.farm_sp.target_runs),
+        "acceleration_key": conf.farm_sp.acceleration_key,
     }
     parser["buy_car"] = {
         "quantity": str(conf.buy_car.quantity),

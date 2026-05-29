@@ -193,9 +193,9 @@ class FarmSPRunner(StepRunner):
         drive_start = time.monotonic()
         last_anna_seen_at: float | None = None
 
-        logger.info("farm_sp: 按住 W，等待 {} 消失", ANNA_LABEL)
+        logger.info("farm_sp: 按住 {}，等待 {} 消失", self.conf.farm_sp.acceleration_key, ANNA_LABEL)
 
-        with keys.held("w"):
+        with keys.held(self.conf.farm_sp.acceleration_key):
             while not self.stop_evt.is_set():
                 tick_start = time.monotonic()
 
