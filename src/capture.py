@@ -70,7 +70,7 @@ def make_grabber(backend: str = "auto") -> Grabber:
         try:
             return BetterCamGrabber()
         except Exception as e:
-            logger.warning("bettercam unavailable ({}); falling back to mss", e)
+            logger.warning("capture: bettercam 不可用 ({})，改用 mss", e)
 
             if backend == "bettercam":
                 raise

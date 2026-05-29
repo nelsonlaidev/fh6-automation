@@ -144,7 +144,7 @@ class StepRunner:
         reference_width = reference_height * 16 / 9
         ratio = min(rect.width / reference_width, rect.height / reference_height)
         logger.info(
-            "Forza found: {}x{} (ratio={:.3f})",
+            "找到 Forza 視窗：{}x{}（ratio={:.3f}）",
             rect.width,
             rect.height,
             ratio,
@@ -176,8 +176,8 @@ class StepRunner:
         try:
             self.run()
         except Exception as e:
-            logger.exception("{} crashed", self.name)
-            self.finish(StopReason.ERROR, f"錯誤:{e}")
+            logger.exception("{} 發生未預期錯誤", self.name)
+            self.finish(StopReason.ERROR, f"錯誤：{e}")
 
     def update(self, **fields) -> None:
         with self.lock:
@@ -185,7 +185,7 @@ class StepRunner:
                 setattr(self.status, k, v)
 
     def finish(self, reason: StopReason, message: str) -> None:
-        logger.info("{} finished: {} ({})", self.name, reason.value, message)
+        logger.info("{} 結束：{} ({})", self.name, reason.value, message)
 
         with self.lock:
             self.status.running = False

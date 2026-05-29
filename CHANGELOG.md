@@ -2,8 +2,20 @@
 
 ## Unreleased
 
+### 新增
+
+- 鍵盤操作加入完整日誌（debug level），記錄每次按鍵的成功或失敗，方便排查「模板比對正常但按鍵無效」的問題。
+- 啟動時記錄環境摘要（app 版本、Python 版本、Windows 版本、螢幕解析度、設定值）。
+- 日誌格式加入 thread 名稱，便於追蹤多執行緒交錯的訊息。
+
 ### 調整
 
+- 所有日誌訊息統一為繁體中文（zh-TW），使用者可直接閱讀 log 檔排查問題。
+- 統一各模組日誌前綴格式（`keys:`、`vision:`、`capture:`、`updater:`、`window:`）。
+- 高頻日誌（perf 統計、每次模板比對成功）從 info 降為 debug，避免快速塞滿 log 檔。
+- 更新檢查連線失敗從 debug 提升為 warning，與其他失敗事件一致。
+- 移除預設 stderr sink，windowed exe 不再靜默寫入已關閉的 stderr。
+- 全形標點統一修正（`錯誤：` 取代 `錯誤:`）。
 - GUI 框架從 customtkinter 遷移至 PySide6，外觀改為原生深色主題，HiDPI 支援更完善。
 - 更新對話框的 release notes 改用 Qt 原生 Markdown 渲染，支援完整語法（表格、圖片等）。
 

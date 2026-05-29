@@ -787,10 +787,39 @@ def apply_dark_palette(app: QApplication) -> None:
     app.setPalette(palette)
 
 
+def _screen_size() -> str:
+    try:
+        import ctypes
+
+        w = ctypes.windll.user32.GetSystemMetrics(0)
+        h = ctypes.windll.user32.GetSystemMetrics(1)
+        return f"{w}x{h}"
+    except Exception:
+        return "unknown"
+
+
 def run() -> None:
+    import platform
+    from version import __version__
+
+    logger.remove()
+    log_fmt = (
+        "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level:<7} | "
+        "{thread.name}:{module}:{line} | {message}"
+    )
     log_path = cfg.logs_dir() / "fh6-automation.log"
-    logger.add(str(log_path), rotation="2 MB", retention=5, enqueue=True)
-    logger.info("Launching FH6 Automation (python {})", sys.version.split()[0])
+    logger.add(
+        str(log_path), format=log_fmt, rotation="2 MB", retention=5, enqueue=True
+    )
+    logger.info(
+        "啟動 FH6 Automation v{} | Python {} | {} {} | 螢幕 {}",
+        __version__,
+        sys.version.split()[0],
+        platform.system(),
+        platform.version(),
+        _screen_size(),
+    )
+    logger.debug("設定：{}", cfg.load())
 
     # 避免 Qt 嘗試重複設定 DPI awareness 時輸出警告（已由系統或其他模組設定）。
     os.environ.setdefault("QT_LOGGING_RULES", "qt.qpa.window=false")

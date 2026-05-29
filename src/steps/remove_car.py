@@ -112,7 +112,7 @@ class RemoveCarRunner(StepRunner):
 
             progress = i + 1
             self.update(progress=progress)
-            logger.info("remove_car: progress {}/{}", progress, self.target)
+            logger.info("remove_car: 進度 {}/{}", progress, self.target)
 
             self.sleep(500)
 
@@ -154,7 +154,7 @@ class RemoveCarRunner(StepRunner):
             self.update(score=score, match_name=name)
 
             if score >= conf.match.threshold:
-                logger.info("remove_car: matched {} (score={:.3f})", name, score)
+                logger.debug("remove_car: 比對到 {} (分數={:.3f})", name, score)
                 return True
 
             if self.sleep_remaining(tick_start, period):

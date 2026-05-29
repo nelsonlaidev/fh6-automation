@@ -47,19 +47,19 @@ def load_templates(names: list[str], ratio: float = 1.0) -> dict[str, np.ndarray
         if user_path.exists():
             path = user_path
             effective_ratio = 1.0
-            logger.info("Using user template (no scaling): {}", name)
+            logger.info("vision: 使用自訂模板（不縮放）：{}", name)
         else:
             path = bundled_path
             effective_ratio = ratio
 
         if not path.exists():
-            logger.warning("Missing template: {}", name)
+            logger.warning("vision: 找不到模板檔案：{}", name)
             continue
 
         img = cv2.imdecode(np.fromfile(str(path), dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
 
         if img is None:
-            logger.warning("Failed to read template: {}", path)
+            logger.warning("vision: 無法讀取模板：{}", path)
             continue
 
         if effective_ratio != 1.0 and effective_ratio > 0:

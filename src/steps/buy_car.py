@@ -84,8 +84,8 @@ class BuyCarRunner(StepRunner):
 
             if now - last_perf_log >= 1.0:
                 fh, fw = frame.shape[:2]
-                logger.info(
-                    "perf: grab={:.0f}ms match={:.0f}ms tick={:.0f}ms frame={}x{}",
+                logger.debug(
+                    "buy_car: perf grab={:.0f}ms match={:.0f}ms tick={:.0f}ms frame={}x{}",
                     (t1 - t0) * 1000,
                     (t2 - t1) * 1000,
                     (t2 - tick_start) * 1000,
@@ -125,7 +125,7 @@ class BuyCarRunner(StepRunner):
                 continue
 
             self.act(screen)
-            logger.info("buy_car: matched {} (score={:.3f})", best.name, best.score)
+            logger.info("buy_car: 比對到 {} (分數={:.3f})", best.name, best.score)
             last_pressed_screen = screen
             last_pressed_at = time.monotonic()
 
@@ -142,5 +142,5 @@ class BuyCarRunner(StepRunner):
 
     def act(self, screen: Screen) -> None:
         for key in KEYS_FOR_SCREEN[screen]:
-            logger.info("press {} for {}", key, screen.value)
+            logger.info("buy_car: 按下 {} (畫面={})", key, screen.value)
             self.tap(key)

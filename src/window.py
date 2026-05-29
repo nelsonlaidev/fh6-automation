@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import pygetwindow as gw
 import win32gui
+from loguru import logger
 
 WINDOW_TITLE_HINTS = ["Forza Horizon 6"]
 
@@ -28,8 +29,15 @@ def find_forza() -> gw.Window | None:
 
         if wins:
             wins.sort(key=lambda w: w.width * w.height, reverse=True)
+            logger.debug(
+                "window: 找到 '{}' ({}x{})",
+                wins[0].title,
+                wins[0].width,
+                wins[0].height,
+            )
             return wins[0]
 
+    logger.debug("window: 找不到符合的視窗")
     return None
 
 

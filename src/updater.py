@@ -89,7 +89,7 @@ def check() -> CheckResult:
     """同步檢查；外部請用 check_async。"""
     current = parse_version(__version__)
     if current is None:
-        logger.warning("Cannot parse current version: {}", __version__)
+        logger.warning("updater: 無法解析目前版本：{}", __version__)
         return CheckResult(status="error", error=f"無法解析目前版本：{__version__}")
 
     try:
@@ -97,16 +97,16 @@ def check() -> CheckResult:
         with urlopen(req, timeout=CHECK_TIMEOUT_S) as resp:
             data = json.loads(resp.read())
     except (URLError, OSError) as e:
-        logger.debug("Update check network error: {}", e)
+        logger.warning("updater: 檢查更新連線失敗：{}", e)
         return CheckResult(status="error", error=f"連線失敗：{e}")
     except (ValueError, KeyError) as e:
-        logger.warning("Update check parse error: {}", e)
+        logger.warning("updater: 檢查更新回應格式錯誤：{}", e)
         return CheckResult(status="error", error=f"回應格式錯誤：{e}")
 
     latest_tag = data.get("tag_name", "")
     latest = parse_version(latest_tag)
     if latest is None:
-        logger.warning("Cannot parse latest tag: {!r}", latest_tag)
+        logger.warning("updater: 無法解析最新版本號：{!r}", latest_tag)
         return CheckResult(status="error", error=f"無法解析版本號：{latest_tag!r}")
 
     if latest <= current:
@@ -118,7 +118,7 @@ def check() -> CheckResult:
         body=data.get("body", "") or "",
         installer_url=find_installer_url(data.get("assets", [])),
     )
-    logger.info("New version available: {} (current: {})", latest_tag, __version__)
+    logger.info("updater: 發現新版本 {} (目前 {})", latest_tag, __version__)
     return CheckResult(status="available", info=info)
 
 
@@ -131,7 +131,7 @@ def check_async(parent, callback: Callable[[CheckResult], None]) -> None:
             QTimer.singleShot(0, parent, lambda: callback(result))
         except Exception:
             # parent 可能已被銷毀；忽略
-            logger.debug("check_async callback skipped (parent destroyed)")
+            logger.debug("updater: 回呼略過（parent 已銷毀）")
 
     threading.Thread(target=worker, name="updater-check", daemon=True).start()
 
@@ -211,9 +211,9 @@ class Download:
             except OSError:
                 pass
             if self.cancel_evt.is_set():
-                logger.info("Download cancelled by user")
+                logger.info("updater: 使用者取消下載")
                 return
-            logger.warning("Download failed: {}", e)
+            logger.warning("updater: 下載失敗：{}", e)
             self.post(lambda err=str(e): self.on_error(err))
 
 
@@ -232,9 +232,9 @@ def launch_installer_and_quit(parent, installer_path: str) -> None:
             creationflags=subprocess.DETACHED_PROCESS
             | subprocess.CREATE_NEW_PROCESS_GROUP,
         )
-        logger.info("Launched silent installer: {}", installer_path)
+        logger.info("updater: 已啟動靜默安裝程式：{}", installer_path)
     except OSError as e:
-        logger.error("Failed to launch installer: {}", e)
+        logger.error("updater: 無法啟動安裝程式：{}", e)
         raise
     QTimer.singleShot(200, QApplication.quit)
 
@@ -244,14 +244,14 @@ def remember_skip(tag: str) -> None:
     conf = cfg.load()
     conf.general.skipped_version = tag
     cfg.save(conf)
-    logger.info("Skipped version recorded: {}", tag)
+    logger.info("updater: 已記錄跳過版本：{}", tag)
 
 
 def clear_skip() -> None:
     conf = cfg.load()
     conf.general.skipped_version = ""
     cfg.save(conf)
-    logger.info("Skipped version cleared")
+    logger.info("updater: 已清除跳過版本紀錄")
 
 
 def open_releases_page() -> None:
@@ -352,7 +352,7 @@ class UpdateDialog(QDialog):
         try:
             remember_skip(self.info.tag)
         except OSError as e:
-            logger.warning("Failed to save skipped_version: {}", e)
+            logger.warning("updater: 無法儲存跳過版本：{}", e)
         self.close()
 
     def on_later(self) -> None:

@@ -200,7 +200,7 @@ class UpgradeCarRunner(StepRunner):
 
             progress = i + 1
             self.update(progress=progress)
-            logger.info("upgrade_car: progress {}/{}", progress, self.target)
+            logger.info("upgrade_car: 進度 {}/{}", progress, self.target)
 
             if progress < self.target:
                 self.update(state="next_car")
@@ -262,7 +262,7 @@ class UpgradeCarRunner(StepRunner):
             self.update(score=score, match_name=name)
 
             if score >= conf.match.threshold:
-                logger.info("upgrade_car: matched {} (score={:.3f})", name, score)
+                logger.debug("upgrade_car: 比對到 {} (分數={:.3f})", name, score)
                 return True
 
             if self.sleep_remaining(tick_start, period):
@@ -306,7 +306,9 @@ class UpgradeCarRunner(StepRunner):
             self.update(score=best_score, match_name=best_name)
 
             if best_score >= conf.match.threshold:
-                logger.info("upgrade_car: saw {} (score={:.2f})", best_name, best_score)
+                logger.debug(
+                    "upgrade_car: 比對到 {} (分數={:.2f})", best_name, best_score
+                )
                 return best_name
 
             if self.sleep_remaining(tick_start, period):

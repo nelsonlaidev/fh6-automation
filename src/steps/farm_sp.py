@@ -124,7 +124,7 @@ class FarmSPRunner(StepRunner):
                 keys_to_press = KEYS_FOR_STATE[state]
 
                 logger.info(
-                    "farm_sp: state={} sees {} (score={:.2f}), press {}",
+                    "farm_sp: 狀態={} 比對到 {} (分數={:.2f})，按 {}",
                     state.value,
                     tpl_name,
                     score,
@@ -193,16 +193,14 @@ class FarmSPRunner(StepRunner):
         drive_start = time.monotonic()
         last_anna_seen_at: float | None = None
 
-        logger.info("farm_sp: holding W, waiting for {} to disappear", ANNA_LABEL)
+        logger.info("farm_sp: 按住 W，等待 {} 消失", ANNA_LABEL)
 
         with keys.held("w"):
             while not self.stop_evt.is_set():
                 tick_start = time.monotonic()
 
                 if not window.is_foreground(win):
-                    logger.info(
-                        "farm_sp: Forza lost foreground while driving, releasing W"
-                    )
+                    logger.warning("farm_sp: 駕駛中 Forza 失去前景，放開 W")
                     return
 
                 frame = self.grabber.grab(self.rect)
