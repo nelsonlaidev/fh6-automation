@@ -1,21 +1,34 @@
 """設定視窗。"""
 
+from tkinter import messagebox
+from typing import Callable
+
 import customtkinter as ctk
 from loguru import logger
 
 import config as cfg
+import updater
 
 FONT_SIZE_HEADING = 14
 
 
 class SettingsWindow(ctk.CTkToplevel):
-    def __init__(self, parent, conf: cfg.Config, on_save=None) -> None:
+    def __init__(
+        self,
+        parent,
+        conf: cfg.Config,
+        on_save=None,
+        on_check_update: (
+            Callable[[Callable[[updater.CheckResult], None]], None] | None
+        ) = None,
+    ) -> None:
         super().__init__(parent)
         self.title("設定")
         self.resizable(False, False)
         self.attributes("-topmost", True)
         self.conf = conf
         self.on_save = on_save
+        self.on_check_update = on_check_update
 
         w, h = 480, 560
         x = parent.winfo_x()
@@ -40,6 +53,35 @@ class SettingsWindow(ctk.CTkToplevel):
         self.var_auto_update = self.checkbox(
             scroll, "啟動時檢查更新", conf.general.auto_update
         )
+
+        self.update_row = ctk.CTkFrame(scroll, fg_color="transparent")
+        self.update_row.pack(fill="x", pady=(4, 2))
+        self.btn_check_update = ctk.CTkButton(
+            self.update_row,
+            text="立即檢查更新",
+            width=140,
+            command=self.handle_check_update,
+        )
+        self.btn_check_update.pack(side="left")
+        self.lbl_update_status = ctk.CTkLabel(
+            self.update_row, text="", text_color="gray60", anchor="w"
+        )
+        self.lbl_update_status.pack(side="left", padx=(8, 0), fill="x", expand=True)
+
+        self.skipped_row = ctk.CTkFrame(scroll, fg_color="transparent")
+        self.skipped_row.pack(fill="x", pady=(2, 2))
+        self.lbl_skipped = ctk.CTkLabel(self.skipped_row, anchor="w", text="")
+        self.lbl_skipped.pack(side="left", fill="x", expand=True)
+        self.btn_clear_skip = ctk.CTkButton(
+            self.skipped_row,
+            text="清除",
+            width=70,
+            fg_color="transparent",
+            border_width=1,
+            command=self.handle_clear_skip,
+        )
+        self.btn_clear_skip.pack(side="right")
+        self.refresh_skipped_row()
 
         self.section(scroll, "擷取")
         self.var_backend = self.dropdown(
@@ -151,3 +193,50 @@ class SettingsWindow(ctk.CTkToplevel):
 
         except (ValueError, OSError) as e:
             logger.warning("Failed to save settings: {}", e)
+
+    def refresh_skipped_row(self) -> None:
+        skipped = self.conf.general.skipped_version
+        if skipped:
+            self.lbl_skipped.configure(text=f"已跳過版本：{skipped}")
+            self.btn_clear_skip.configure(state="normal")
+            self.skipped_row.pack(fill="x", pady=(2, 2))
+        else:
+            self.lbl_skipped.configure(text="")
+            self.btn_clear_skip.configure(state="disabled")
+            self.skipped_row.pack_forget()
+
+    def handle_clear_skip(self) -> None:
+        try:
+            updater.clear_skip()
+        except OSError as e:
+            logger.warning("Failed to clear skipped_version: {}", e)
+            return
+        self.conf = cfg.load()
+        self.refresh_skipped_row()
+
+    def handle_check_update(self) -> None:
+        if self.on_check_update is None:
+            return
+        self.btn_check_update.configure(state="disabled", text="檢查中…")
+        self.lbl_update_status.configure(text="", text_color="gray60")
+        self.on_check_update(self.on_check_update_result)
+
+    def on_check_update_result(self, result: "updater.CheckResult") -> None:
+        self.btn_check_update.configure(state="normal", text="立即檢查更新")
+        if result.status == "available":
+            # 對話框已由 App.trigger_manual_update_check 開出
+            self.lbl_update_status.configure(text="發現新版本", text_color="#3b82f6")
+        elif result.status == "up_to_date":
+            self.lbl_update_status.configure(text="已是最新版本", text_color="#22c55e")
+            messagebox.showinfo(
+                "已是最新版本",
+                "目前已是最新版本。",
+                parent=self,
+            )
+        else:
+            self.lbl_update_status.configure(text="檢查失敗", text_color="#ef4444")
+            messagebox.showerror(
+                "檢查失敗",
+                result.error or "無法檢查更新",
+                parent=self,
+            )

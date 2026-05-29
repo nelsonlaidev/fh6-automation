@@ -3,6 +3,7 @@ import subprocess
 import sys
 import time
 from tkinter import messagebox
+from typing import Callable
 
 import customtkinter as ctk
 from loguru import logger
@@ -95,7 +96,35 @@ class App(ctk.CTk):
         self.after(REFRESH_MS, self.refresh)
 
         if self.conf.general.auto_update:
-            updater.check_update_async(self)
+            self.after(500, self.start_auto_update_check)
+
+    def start_auto_update_check(self) -> None:
+        updater.check_async(self, self.on_auto_update_result)
+
+    def on_auto_update_result(self, result: "updater.CheckResult") -> None:
+        if result.status != "available" or result.info is None:
+            return
+        if result.info.tag == self.conf.general.skipped_version:
+            logger.info(
+                "Skipping update prompt for {} (user previously skipped)",
+                result.info.tag,
+            )
+            return
+        updater.prompt_update(self, result.info)
+
+    def trigger_manual_update_check(
+        self,
+        on_done: "Callable[[updater.CheckResult], None] | None" = None,
+    ) -> None:
+        """從設定頁觸發手動檢查；忽略 skipped_version。"""
+
+        def callback(result: "updater.CheckResult") -> None:
+            if result.status == "available" and result.info is not None:
+                updater.prompt_update(self, result.info)
+            if on_done:
+                on_done(result)
+
+        updater.check_async(self, callback)
 
     def runner(self, step_id: str) -> StepRunner:
         return self.runners[step_id]
@@ -293,7 +322,12 @@ class App(ctk.CTk):
         open_in_explorer(cfg.user_templates_dir())
 
     def open_config(self) -> None:
-        SettingsWindow(self, self.conf, on_save=self.apply_settings)
+        SettingsWindow(
+            self,
+            self.conf,
+            on_save=self.apply_settings,
+            on_check_update=self.trigger_manual_update_check,
+        )
 
     def apply_settings(self, new_conf: cfg.Config) -> None:
         self.conf = new_conf

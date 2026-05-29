@@ -51,6 +51,7 @@ class GeneralCfg:
     dry_run: bool = False
     always_on_top: bool = False
     auto_update: bool = True
+    skipped_version: str = ""
 
 
 @dataclass
@@ -128,6 +129,8 @@ DEFAULT_INI_TEMPLATE = """\
 dry_run = {defaults.general.dry_run}
 always_on_top = {defaults.general.always_on_top}
 auto_update = {defaults.general.auto_update}
+; 若使用者在更新對話框按「跳過此版本」，會記錄該版本 tag（如 v0.3.0），自動檢查時不再彈窗。
+skipped_version = {defaults.general.skipped_version}
 
 [capture]
 ; auto -> 優先使用 bettercam (較快),失敗會退回 mss
@@ -193,6 +196,9 @@ def load() -> Config:
             ),
             auto_update=parser.getboolean(
                 "general", "auto_update", fallback=defaults.general.auto_update
+            ),
+            skipped_version=parser.get(
+                "general", "skipped_version", fallback=defaults.general.skipped_version
             ),
         ),
         capture=CaptureCfg(
@@ -265,6 +271,7 @@ def save(conf: Config) -> None:
         "dry_run": str(conf.general.dry_run),
         "always_on_top": str(conf.general.always_on_top),
         "auto_update": str(conf.general.auto_update),
+        "skipped_version": conf.general.skipped_version,
     }
     parser["capture"] = {
         "backend": conf.capture.backend,
