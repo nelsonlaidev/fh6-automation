@@ -38,6 +38,7 @@ from version import __version__
 
 REPO = "nelsonlaidev/fh6-automation"
 API_URL = f"https://api.github.com/repos/{REPO}/releases/latest"
+API_URL_ALL = f"https://api.github.com/repos/{REPO}/releases?per_page=1"
 RELEASES_URL = f"https://github.com/{REPO}/releases/latest"
 INSTALLER_ASSET_PREFIX = "FH6Automation_Setup"
 
@@ -92,10 +93,14 @@ def check() -> CheckResult:
         logger.warning("updater: 無法解析目前版本：{}", __version__)
         return CheckResult(status="error", error=f"無法解析目前版本：{__version__}")
 
+    conf = cfg.load()
+    url = API_URL_ALL if conf.general.update_channel == "beta" else API_URL
+
     try:
-        req = Request(API_URL, headers={"Accept": "application/vnd.github.v3+json"})
+        req = Request(url, headers={"Accept": "application/vnd.github.v3+json"})
         with urlopen(req, timeout=CHECK_TIMEOUT_S) as resp:
-            data = json.loads(resp.read())
+            raw = json.loads(resp.read())
+            data = raw[0] if isinstance(raw, list) else raw
     except (URLError, OSError) as e:
         logger.warning("updater: 檢查更新連線失敗：{}", e)
         return CheckResult(status="error", error=f"連線失敗：{e}")

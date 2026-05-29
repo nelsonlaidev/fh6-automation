@@ -76,6 +76,7 @@ class SettingsWindow(QDialog):
         self.var_dry_run = self.checkbox("Dry Run（不實際執行消耗操作）", conf.general.dry_run)
         self.var_always_on_top = self.checkbox("視窗置頂", conf.general.always_on_top)
         self.var_auto_update = self.checkbox("啟動時檢查更新", conf.general.auto_update)
+        self.var_update_channel = self.dropdown("更新頻道", conf.general.update_channel, ["stable", "beta"])
 
         # 立即檢查更新按鈕 + 狀態文字
         update_row = QWidget()
@@ -221,6 +222,7 @@ class SettingsWindow(QDialog):
                     dry_run=self.var_dry_run.isChecked(),
                     always_on_top=self.var_always_on_top.isChecked(),
                     auto_update=self.var_auto_update.isChecked(),
+                    update_channel=self.var_update_channel.currentText(),
                     skipped_version=self.conf.general.skipped_version,
                 ),
                 capture=cfg.CaptureCfg(

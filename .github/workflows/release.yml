@@ -36,3 +36,4 @@ jobs:
         with:
           files: Output/FH6Automation_Setup.exe
           body_path: RELEASE_BODY.md
+          prerelease: ${{ contains(github.ref_name, '-') }}

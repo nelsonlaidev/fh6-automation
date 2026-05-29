@@ -49,6 +49,7 @@ class GeneralCfg:
     dry_run: bool = False
     always_on_top: bool = False
     auto_update: bool = True
+    update_channel: str = "stable"  # stable | beta
     skipped_version: str = ""
 
 
@@ -128,6 +129,8 @@ DEFAULT_INI_TEMPLATE = """\
 dry_run = {defaults.general.dry_run}
 always_on_top = {defaults.general.always_on_top}
 auto_update = {defaults.general.auto_update}
+; 更新頻道：stable 只收正式版，beta 可搶先收到測試版修正。
+update_channel = {defaults.general.update_channel}
 ; 若使用者在更新對話框按「跳過此版本」，會記錄該版本 tag（如 v0.3.0），自動檢查時不再彈窗。
 skipped_version = {defaults.general.skipped_version}
 
@@ -192,6 +195,7 @@ def load() -> Config:
             dry_run=parser.getboolean("general", "dry_run", fallback=defaults.general.dry_run),
             always_on_top=parser.getboolean("general", "always_on_top", fallback=defaults.general.always_on_top),
             auto_update=parser.getboolean("general", "auto_update", fallback=defaults.general.auto_update),
+            update_channel=parser.get("general", "update_channel", fallback=defaults.general.update_channel),
             skipped_version=parser.get("general", "skipped_version", fallback=defaults.general.skipped_version),
         ),
         capture=CaptureCfg(
@@ -243,6 +247,7 @@ def save(conf: Config) -> None:
         "dry_run": str(conf.general.dry_run),
         "always_on_top": str(conf.general.always_on_top),
         "auto_update": str(conf.general.auto_update),
+        "update_channel": conf.general.update_channel,
         "skipped_version": conf.general.skipped_version,
     }
     parser["capture"] = {
